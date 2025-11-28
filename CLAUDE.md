@@ -866,3 +866,4 @@ pyinstaller docx_bulk_editor.spec --clean
 # Test executable (on clean VM recommended)
 .\dist\docx_bulk_editor.exe
 ```
+- Learn from this debugging session and update CLAUDE.md with the new development pattern and anti-pattern

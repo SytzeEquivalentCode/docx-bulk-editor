@@ -141,11 +141,15 @@ def _compile_pattern(search_term: str, use_regex: bool, case_sensitive: bool,
 
 def _replace_in_paragraph(paragraph: Paragraph, pattern: re.Pattern,
                           replace_term: str) -> int:
-    """Replace matches in a paragraph, preserving formatting.
+    """Replace matches in a paragraph.
 
-    This function preserves run-level formatting (bold, italic, font properties)
-    by replacing text within each run individually rather than replacing the
-    entire paragraph text at once.
+    This function handles text that may be split across multiple runs
+    in the Word document XML. When a match spans multiple runs, the
+    paragraph is reconstructed with a single run containing the replaced text.
+
+    Note: This approach preserves paragraph-level formatting but may lose
+    run-level formatting (e.g., bold/italic on individual words) when
+    matches span multiple runs.
 
     Args:
         paragraph: python-docx Paragraph object
@@ -158,15 +162,58 @@ def _replace_in_paragraph(paragraph: Paragraph, pattern: re.Pattern,
     if not paragraph.text:
         return 0
 
-    # Check if there are any matches in the paragraph
+    # Get the full paragraph text (concatenates all runs)
     original_text = paragraph.text
     new_text, count = pattern.subn(replace_term, original_text)
 
     if count > 0:
-        # Preserve formatting by replacing run-by-run
+        # Text was modified - we need to reconstruct the paragraph
+        # First, try run-by-run replacement (preserves formatting if match is within one run)
+        runs_modified = False
         for run in paragraph.runs:
-            if run.text:
-                run.text, _ = pattern.subn(replace_term, run.text)
+            if run.text and pattern.search(run.text):
+                run.text = pattern.sub(replace_term, run.text)
+                runs_modified = True
+
+        # If run-by-run didn't work (match spans multiple runs),
+        # replace the entire paragraph text
+        if not runs_modified:
+            # Save formatting from first run (if exists)
+            first_run_style = None
+            if paragraph.runs:
+                first_run = paragraph.runs[0]
+                first_run_style = {
+                    'bold': first_run.bold,
+                    'italic': first_run.italic,
+                    'underline': first_run.underline,
+                    'font_name': first_run.font.name if first_run.font.name else None,
+                    'font_size': first_run.font.size
+                }
+
+            # Clear all runs
+            for run in paragraph.runs:
+                run.text = ''
+
+            # Remove empty runs
+            for run in list(paragraph.runs):
+                if not run.text:
+                    run._element.getparent().remove(run._element)
+
+            # Add new run with replaced text
+            new_run = paragraph.add_run(new_text)
+
+            # Apply saved formatting if available
+            if first_run_style:
+                if first_run_style['bold'] is not None:
+                    new_run.bold = first_run_style['bold']
+                if first_run_style['italic'] is not None:
+                    new_run.italic = first_run_style['italic']
+                if first_run_style['underline'] is not None:
+                    new_run.underline = first_run_style['underline']
+                if first_run_style['font_name']:
+                    new_run.font.name = first_run_style['font_name']
+                if first_run_style['font_size']:
+                    new_run.font.size = first_run_style['font_size']
 
     return count
 

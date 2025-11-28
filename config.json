@@ -15,8 +15,8 @@
   },
   "ui": {
     "theme": "system",
-    "window_width": 1000,
-    "window_height": 700,
+    "window_width": 2560,
+    "window_height": 1369,
     "remember_window_position": true,
     "show_tooltips": true,
     "progress_update_interval_ms": 100

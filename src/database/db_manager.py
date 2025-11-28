@@ -130,6 +130,7 @@ class DatabaseManager:
                     successful_files INTEGER DEFAULT 0,
                     failed_files INTEGER DEFAULT 0,
                     total_changes INTEGER DEFAULT 0,
+                    duration_seconds REAL DEFAULT 0.0,
                     error_message TEXT
                 )
             """)

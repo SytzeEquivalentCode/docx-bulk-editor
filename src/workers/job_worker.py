@@ -12,6 +12,7 @@ from typing import List, Dict, Any, Optional
 from pathlib import Path
 import importlib
 import time
+from datetime import datetime
 
 from PySide6.QtCore import QThread, Signal
 
@@ -260,8 +261,8 @@ class JobWorker(QThread):
                 status,
                 completed_at=time.time(),
                 duration_seconds=duration,
-                success_count=success_count,
-                failure_count=failure_count
+                successful_files=success_count,
+                failed_files=failure_count
             )
 
             # Emit completion signal
@@ -399,10 +400,10 @@ class JobWorker(QThread):
                 cursor.execute(
                     '''
                     INSERT INTO job_results (
-                        id, job_id, file_path, status, duration_seconds,
-                        changes_made, error_message, backup_path
+                        id, job_id, file_path, status, processing_time_seconds,
+                        changes_made, error_message, backup_path, created_at
                     )
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                     ''',
                     (
                         self.db_manager.generate_id(),
@@ -412,7 +413,8 @@ class JobWorker(QThread):
                         result.duration_seconds,
                         result.changes_made,
                         result.error_message,
-                        backup_path
+                        backup_path,
+                        datetime.now().isoformat()
                     )
                 )
                 conn.commit()
