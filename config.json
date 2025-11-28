@@ -1,0 +1,30 @@
+{
+  "version": "1.0.0",
+  "backup": {
+    "directory": "./backups",
+    "retention_days": 7,
+    "auto_cleanup": true,
+    "compress": false
+  },
+  "processing": {
+    "pool_size": null,
+    "timeout_per_file_seconds": 60,
+    "max_file_size_mb": 100,
+    "warn_large_files": true,
+    "skip_locked_files": true
+  },
+  "ui": {
+    "theme": "system",
+    "window_width": 1000,
+    "window_height": 700,
+    "remember_window_position": true,
+    "show_tooltips": true,
+    "progress_update_interval_ms": 100
+  },
+  "logging": {
+    "level": "INFO",
+    "retention_days": 30,
+    "max_file_size_mb": 10,
+    "max_files": 10
+  }
+}

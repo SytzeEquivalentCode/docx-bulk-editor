@@ -1,0 +1,16 @@
+# Production dependencies for DOCX Bulk Editor
+# Compatible with Python 3.11+
+# Install with: pip install -r requirements.txt
+
+# GUI Framework
+PySide6>=6.8.0              # Qt 6 for Python - Desktop UI
+
+# Document Processing
+python-docx>=1.1.0          # Microsoft Word .docx manipulation
+lxml>=5.1.0                 # XML processing (required by python-docx)
+
+# Packaging (for distribution builds)
+pyinstaller>=6.3.0          # Windows .exe packaging
+
+# Note: Development and testing dependencies are in requirements-dev.txt
+# Install dev dependencies with: pip install -r requirements-dev.txt

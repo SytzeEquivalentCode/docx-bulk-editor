@@ -1,0 +1,38 @@
+# Development and testing dependencies for DOCX Bulk Editor
+# Install with: pip install -r requirements.txt -r requirements-dev.txt
+
+# Testing framework
+pytest==8.0.0
+pytest-qt==4.3.1              # PySide6/Qt testing utilities
+pytest-cov==4.1.0             # Coverage reporting
+pytest-timeout==2.2.0         # Prevent hanging tests
+pytest-mock==3.12.0           # Mocking utilities
+pytest-xdist==3.5.0           # Parallel test execution
+
+# Coverage tools
+coverage[toml]==7.4.0         # Coverage measurement
+
+# Performance testing
+pytest-benchmark==4.0.0       # Performance benchmarking
+
+# Property-based testing
+hypothesis==6.98.0            # Generate edge case test data
+
+# Code quality
+black==24.2.0                 # Code formatting
+pylint==3.0.3                 # Static analysis
+mypy==1.8.0                   # Type checking
+ruff==0.2.2                   # Fast linter
+
+# Type stubs for better type checking
+# Note: types-python-docx does not exist on PyPI
+# python-docx does not currently have official type stubs available
+# Use '# type: ignore' comments where needed for mypy compatibility
+
+# Test utilities
+faker==24.0.0                 # Generate fake test data
+freezegun==1.4.0              # Mock datetime for tests
+
+# Documentation
+sphinx==7.2.6                 # Documentation generation (optional)
+sphinx-rtd-theme==2.0.0       # ReadTheDocs theme (optional)

@@ -1,0 +1,51 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+ENV/
+*.egg-info/
+dist/
+build/
+
+# Application runtime
+data/
+backups/
+logs/
+*.db
+
+# PyInstaller
+# Note: .spec file is kept in version control for build reproducibility
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+coverage.xml
+.benchmarks/
+benchmark.json
+.hypothesis/
+.tox/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+.cursor/
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# Qt
+*.qmlc
+*.ui~
+
+# TaskMaster
+.taskmaster/
+
+# Environment
+.env
+.env.example

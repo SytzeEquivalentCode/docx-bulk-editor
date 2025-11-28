@@ -1,0 +1,83 @@
+# Coverage.py configuration for DOCX Bulk Editor
+# See: https://coverage.readthedocs.io/en/latest/config.html
+
+[run]
+# Measure coverage for source code in src/ directory
+source = src
+
+# Don't measure coverage for these paths
+omit =
+    */tests/*
+    */venv/*
+    */__pycache__/*
+    */site-packages/*
+    */.tox/*
+
+# Enable branch coverage (not just line coverage)
+branch = True
+
+# Run concurrently with multiprocessing
+parallel = True
+
+[report]
+# Precision for coverage percentages
+precision = 2
+
+# Show line numbers of missing coverage
+show_missing = True
+
+# Don't skip files with 100% coverage in report
+skip_covered = False
+
+# Don't skip files with no executable code
+skip_empty = False
+
+# Fail if coverage is below this threshold
+fail_under = 80.0
+
+# Exclude these patterns from coverage requirements
+exclude_lines =
+    # Standard pragma
+    pragma: no cover
+
+    # Don't complain about missing debug-only code
+    def __repr__
+    def __str__
+
+    # Don't complain if tests don't hit defensive assertion code
+    raise AssertionError
+    raise NotImplementedError
+
+    # Don't require coverage for main entry points
+    if __name__ == .__main__.:
+
+    # Type checking imports
+    if TYPE_CHECKING:
+    if typing.TYPE_CHECKING:
+
+    # Abstract methods don't need coverage
+    @abstractmethod
+    @abc.abstractmethod
+
+    # Don't complain about ellipsis in protocols/stubs
+    \.\.\.
+
+    # Don't require coverage for pass statements
+    pass
+
+[html]
+# Output directory for HTML coverage report
+directory = htmlcov
+
+# Title for HTML report
+title = DOCX Bulk Editor - Test Coverage Report
+
+[xml]
+# Output file for XML coverage report (for CI/CD)
+output = coverage.xml
+
+[paths]
+# Map different source paths (useful for CI/CD)
+source =
+    src/
+    */site-packages/
