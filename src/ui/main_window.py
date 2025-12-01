@@ -14,10 +14,10 @@ from typing import List, Optional
 from PySide6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton,
     QListWidget, QLabel, QGroupBox, QLineEdit, QCheckBox,
-    QFileDialog, QMessageBox
+    QFileDialog, QMessageBox, QMenuBar, QMenu, QComboBox, QSpinBox
 )
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QDragEnterEvent, QDropEvent
+from PySide6.QtGui import QDragEnterEvent, QDropEvent, QAction, QKeySequence
 
 from src.core.config import ConfigManager
 from src.core.logger import setup_logger
@@ -25,6 +25,7 @@ from src.database.db_manager import DatabaseManager
 from src.core.backup import BackupManager
 from src.workers.job_worker import JobWorker
 from src.ui.progress_dialog import ProgressDialog
+from src.ui.settings_dialog import SettingsDialog
 
 logger = setup_logger()
 
@@ -93,6 +94,9 @@ class MainWindow(QMainWindow):
         # Set window properties
         self.setWindowTitle('DOCX Bulk Editor v1.0')
 
+        # Create menu bar
+        self._create_menu_bar()
+
         # Create central widget
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
@@ -125,6 +129,96 @@ class MainWindow(QMainWindow):
         self.setAcceptDrops(True)
 
         logger.debug("UI initialized")
+
+    def _create_menu_bar(self):
+        """Create application menu bar with File, Edit, Tools, and Help menus."""
+        menu_bar = self.menuBar()
+
+        # File menu
+        file_menu = menu_bar.addMenu('&File')
+
+        add_files_action = QAction('&Add Files...', self)
+        add_files_action.setShortcut(QKeySequence('Ctrl+O'))
+        add_files_action.triggered.connect(self._on_add_files)
+        file_menu.addAction(add_files_action)
+
+        add_folder_action = QAction('Add &Folder...', self)
+        add_folder_action.setShortcut(QKeySequence('Ctrl+D'))
+        add_folder_action.triggered.connect(self._on_add_folder)
+        file_menu.addAction(add_folder_action)
+
+        file_menu.addSeparator()
+
+        exit_action = QAction('E&xit', self)
+        exit_action.setShortcut(QKeySequence('Ctrl+Q'))
+        exit_action.triggered.connect(self.close)
+        file_menu.addAction(exit_action)
+
+        # Edit menu
+        edit_menu = menu_bar.addMenu('&Edit')
+
+        clear_action = QAction('&Clear All Files', self)
+        clear_action.triggered.connect(self._on_clear_files)
+        edit_menu.addAction(clear_action)
+
+        edit_menu.addSeparator()
+
+        settings_action = QAction('&Settings...', self)
+        settings_action.setShortcut(QKeySequence('Ctrl+,'))
+        settings_action.triggered.connect(self._on_settings)
+        edit_menu.addAction(settings_action)
+
+        # Tools menu
+        tools_menu = menu_bar.addMenu('&Tools')
+
+        history_action = QAction('Job &History...', self)
+        history_action.setShortcut(QKeySequence('Ctrl+H'))
+        history_action.triggered.connect(self._on_show_history)
+        tools_menu.addAction(history_action)
+
+        # Help menu
+        help_menu = menu_bar.addMenu('&Help')
+
+        about_action = QAction('&About', self)
+        about_action.triggered.connect(self._on_about)
+        help_menu.addAction(about_action)
+
+    def _on_settings(self):
+        """Open settings dialog."""
+        dialog = SettingsDialog(self.config, self)
+        if dialog.exec():
+            # Reload backup manager with new settings
+            self.backup_manager = BackupManager(
+                Path(self.config.get('backup.directory', './backups')),
+                self.db_manager,
+                self.config.get('backup.retention_days', 7)
+            )
+            logger.info("Settings updated, backup manager reloaded")
+
+    def _on_show_history(self):
+        """Show job history window."""
+        from src.ui.history_window import HistoryWindow
+        dialog = HistoryWindow(self.db_manager, self)
+        dialog.exec()
+
+    def _on_about(self):
+        """Show about dialog."""
+        QMessageBox.about(
+            self,
+            'About DOCX Bulk Editor',
+            '<h3>DOCX Bulk Editor v1.0</h3>'
+            '<p>A lightweight desktop application for batch processing '
+            'Microsoft Word (.docx) documents.</p>'
+            '<p>Built with Python and PySide6.</p>'
+            '<p>Features:</p>'
+            '<ul>'
+            '<li>Search & Replace</li>'
+            '<li>Metadata Management</li>'
+            '<li>Table Formatting</li>'
+            '<li>Style Enforcement</li>'
+            '<li>Document Validation</li>'
+            '</ul>'
+        )
 
     def _create_operation_selector(self) -> QGroupBox:
         """
@@ -187,10 +281,16 @@ class MainWindow(QMainWindow):
         # Update configuration panel
         if operation == 'search_replace':
             self._show_search_replace_config()
+        elif operation == 'metadata':
+            self._show_metadata_config()
+        elif operation == 'validate':
+            self._show_validate_config()
+        elif operation == 'table_format':
+            self._show_table_format_config()
+        elif operation == 'style_enforce':
+            self._show_style_enforce_config()
         else:
-            # Clear config panel for unsupported operations
-            self._clear_config_panel()
-            # TODO: Add other operation configs (metadata, table_format, etc.)
+            self._show_placeholder_config(operation)
 
         logger.debug(f"Operation selected: {operation}")
 
@@ -213,6 +313,29 @@ class MainWindow(QMainWindow):
         group.setLayout(self.config_layout)
         return group
 
+    def _clear_layout(self, layout):
+        """
+        Recursively clear all items from a layout.
+
+        Handles widgets, nested layouts, and spacer items properly.
+
+        Args:
+            layout: QLayout to clear
+        """
+        if layout is None:
+            return
+
+        while layout.count():
+            item = layout.takeAt(0)
+
+            # Handle nested layouts recursively
+            if item.layout():
+                self._clear_layout(item.layout())
+
+            # Handle widgets
+            if item.widget():
+                item.widget().deleteLater()
+
     def _clear_config_panel(self):
         """
         Clear all widgets from the configuration panel.
@@ -220,15 +343,23 @@ class MainWindow(QMainWindow):
         This removes and deletes all widgets to prevent memory leaks
         and prepares the panel for new content.
         """
-        # Remove all widgets from layout
-        while self.config_layout.count():
-            item = self.config_layout.takeAt(0)
-            if item.widget():
-                widget = item.widget()
-                widget.deleteLater()
+        # Recursively clear all items from layout
+        self._clear_layout(self.config_layout)
 
         # Remove attribute references for all known config widgets
-        config_attrs = ['search_input', 'replace_input', 'regex_checkbox', 'case_checkbox']
+        config_attrs = [
+            'search_input', 'replace_input', 'regex_check', 'case_check',
+            'body_check', 'tables_check', 'headers_check', 'footers_check', 'whole_words_check',
+            'metadata_clear_checks', 'metadata_set_inputs',
+            # Validation config
+            'validate_heading_check', 'validate_empty_check', 'validate_placeholder_check', 'validate_whitespace_check',
+            # Table format config
+            'table_borders_check', 'table_header_bg_check', 'table_zebra_check',
+            'table_alignment_combo', 'table_padding_spin',
+            # Style enforce config
+            'style_font_check', 'style_heading_check', 'style_spacing_check',
+            'style_font_name_input', 'style_font_size_spin'
+        ]
         for attr in config_attrs:
             if hasattr(self, attr):
                 delattr(self, attr)
@@ -286,6 +417,234 @@ class MainWindow(QMainWindow):
         options_layout.addWidget(self.whole_words_check)
         options_layout.addStretch()
         self.config_layout.addLayout(options_layout)
+
+    def _show_metadata_config(self):
+        """
+        Show configuration widgets for metadata management operation.
+
+        Allows users to clear or set metadata fields like author, title, etc.
+        """
+        # Clear existing widgets
+        self._clear_config_panel()
+
+        # Instructions
+        instruction_label = QLabel('Select metadata fields to clear or set new values:')
+        self.config_layout.addLayout(QHBoxLayout())  # Spacer
+        self.config_layout.addWidget(instruction_label)
+
+        # Common metadata fields
+        metadata_fields = [
+            ('author', 'Author'),
+            ('title', 'Title'),
+            ('subject', 'Subject'),
+            ('keywords', 'Keywords'),
+            ('comments', 'Comments'),
+            ('category', 'Category'),
+            ('content_status', 'Content Status'),
+            ('last_modified_by', 'Last Modified By')
+        ]
+
+        # Create checkboxes and input fields for each metadata field
+        self.metadata_clear_checks = {}
+        self.metadata_set_inputs = {}
+
+        for field_id, field_label in metadata_fields:
+            row_layout = QHBoxLayout()
+
+            # Checkbox for clearing
+            clear_check = QCheckBox(f'Clear {field_label}')
+            clear_check.stateChanged.connect(
+                lambda state, fid=field_id: self._on_metadata_clear_toggled(fid, state)
+            )
+            self.metadata_clear_checks[field_id] = clear_check
+            row_layout.addWidget(clear_check)
+
+            row_layout.addSpacing(20)
+
+            # Label and input for setting new value
+            set_label = QLabel(f'Set {field_label}:')
+            set_input = QLineEdit()
+            set_input.setPlaceholderText(f'New {field_label.lower()}...')
+            set_input.textChanged.connect(
+                lambda text, fid=field_id: self._on_metadata_set_changed(fid, text)
+            )
+            self.metadata_set_inputs[field_id] = set_input
+
+            row_layout.addWidget(set_label)
+            row_layout.addWidget(set_input, stretch=1)
+
+            self.config_layout.addLayout(row_layout)
+
+        self.config_layout.addStretch()
+
+    def _on_metadata_clear_toggled(self, field_id: str, state: int):
+        """Handle metadata clear checkbox toggle - disable set input if checked."""
+        if state == Qt.CheckState.Checked.value:
+            self.metadata_set_inputs[field_id].setEnabled(False)
+            self.metadata_set_inputs[field_id].clear()
+        else:
+            self.metadata_set_inputs[field_id].setEnabled(True)
+
+    def _on_metadata_set_changed(self, field_id: str, text: str):
+        """Handle metadata set input change - uncheck clear if text entered."""
+        if text:
+            self.metadata_clear_checks[field_id].setChecked(False)
+
+    def _show_placeholder_config(self, operation: str):
+        """
+        Show placeholder message for unimplemented operations.
+
+        Args:
+            operation: Operation ID that was selected
+        """
+        # Clear existing widgets
+        self._clear_config_panel()
+
+        # Operation name mapping
+        operation_names = {
+            'table_format': 'Table Format',
+            'style_enforce': 'Style',
+            'validate': 'Validate'
+        }
+
+        # Create placeholder label
+        placeholder_label = QLabel(
+            f'{operation_names.get(operation, operation.title())} configuration '
+            f'will be available in a future update.'
+        )
+        placeholder_label.setStyleSheet('color: #888; font-style: italic;')
+        placeholder_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        # Add to layout
+        self.config_layout.addWidget(placeholder_label)
+        self.config_layout.addStretch()
+
+    def _show_validate_config(self):
+        """Show configuration widgets for document validation operation."""
+        self._clear_config_panel()
+
+        # Instructions
+        instruction_label = QLabel('Select validation rules to check:')
+        self.config_layout.addWidget(instruction_label)
+
+        # Validation checkboxes
+        options_layout = QVBoxLayout()
+
+        self.validate_heading_check = QCheckBox('Check heading hierarchy (no skipped levels)')
+        self.validate_heading_check.setChecked(True)
+        options_layout.addWidget(self.validate_heading_check)
+
+        self.validate_empty_check = QCheckBox('Check for multiple empty paragraphs')
+        self.validate_empty_check.setChecked(True)
+        options_layout.addWidget(self.validate_empty_check)
+
+        self.validate_placeholder_check = QCheckBox('Find placeholder text ({{var}}, [TODO], etc.)')
+        self.validate_placeholder_check.setChecked(True)
+        options_layout.addWidget(self.validate_placeholder_check)
+
+        self.validate_whitespace_check = QCheckBox('Check whitespace issues (trailing spaces, multiple spaces)')
+        self.validate_whitespace_check.setChecked(False)
+        options_layout.addWidget(self.validate_whitespace_check)
+
+        self.config_layout.addLayout(options_layout)
+
+        # Info label
+        info_label = QLabel('Note: Validation reports issues but does not modify documents.')
+        info_label.setStyleSheet('color: #666; font-style: italic;')
+        self.config_layout.addWidget(info_label)
+
+        self.config_layout.addStretch()
+
+    def _show_table_format_config(self):
+        """Show configuration widgets for table formatting operation."""
+        self._clear_config_panel()
+
+        # Instructions
+        instruction_label = QLabel('Select table formatting options:')
+        self.config_layout.addWidget(instruction_label)
+
+        # Format options
+        options_layout = QVBoxLayout()
+
+        self.table_borders_check = QCheckBox('Standardize borders (solid, black)')
+        self.table_borders_check.setChecked(True)
+        options_layout.addWidget(self.table_borders_check)
+
+        self.table_header_bg_check = QCheckBox('Add header row background (light gray)')
+        self.table_header_bg_check.setChecked(True)
+        options_layout.addWidget(self.table_header_bg_check)
+
+        self.table_zebra_check = QCheckBox('Apply zebra striping (alternating row colors)')
+        self.table_zebra_check.setChecked(False)
+        options_layout.addWidget(self.table_zebra_check)
+
+        self.config_layout.addLayout(options_layout)
+
+        # Alignment
+        align_layout = QHBoxLayout()
+        align_layout.addWidget(QLabel('Cell alignment:'))
+        self.table_alignment_combo = QComboBox()
+        self.table_alignment_combo.addItems(['Left', 'Center', 'Right'])
+        align_layout.addWidget(self.table_alignment_combo)
+        align_layout.addStretch()
+        self.config_layout.addLayout(align_layout)
+
+        # Padding
+        padding_layout = QHBoxLayout()
+        padding_layout.addWidget(QLabel('Cell padding:'))
+        self.table_padding_spin = QSpinBox()
+        self.table_padding_spin.setRange(0, 20)
+        self.table_padding_spin.setValue(5)
+        self.table_padding_spin.setSuffix(' pt')
+        padding_layout.addWidget(self.table_padding_spin)
+        padding_layout.addStretch()
+        self.config_layout.addLayout(padding_layout)
+
+        self.config_layout.addStretch()
+
+    def _show_style_enforce_config(self):
+        """Show configuration widgets for style enforcement operation."""
+        self._clear_config_panel()
+
+        # Instructions
+        instruction_label = QLabel('Select style enforcement rules:')
+        self.config_layout.addWidget(instruction_label)
+
+        # Style options
+        options_layout = QVBoxLayout()
+
+        self.style_font_check = QCheckBox('Standardize body font')
+        self.style_font_check.setChecked(True)
+        options_layout.addWidget(self.style_font_check)
+
+        # Font name
+        font_layout = QHBoxLayout()
+        font_layout.addSpacing(20)
+        font_layout.addWidget(QLabel('Font:'))
+        self.style_font_name_input = QLineEdit()
+        self.style_font_name_input.setText('Calibri')
+        self.style_font_name_input.setMaximumWidth(150)
+        font_layout.addWidget(self.style_font_name_input)
+
+        font_layout.addWidget(QLabel('Size:'))
+        self.style_font_size_spin = QSpinBox()
+        self.style_font_size_spin.setRange(8, 72)
+        self.style_font_size_spin.setValue(11)
+        self.style_font_size_spin.setSuffix(' pt')
+        font_layout.addWidget(self.style_font_size_spin)
+        font_layout.addStretch()
+        options_layout.addLayout(font_layout)
+
+        self.style_heading_check = QCheckBox('Enforce heading styles (Heading 1, Heading 2, etc.)')
+        self.style_heading_check.setChecked(True)
+        options_layout.addWidget(self.style_heading_check)
+
+        self.style_spacing_check = QCheckBox('Normalize paragraph spacing')
+        self.style_spacing_check.setChecked(False)
+        options_layout.addWidget(self.style_spacing_check)
+
+        self.config_layout.addLayout(options_layout)
+        self.config_layout.addStretch()
 
     def _create_file_selection(self) -> QGroupBox:
         """
@@ -457,6 +816,19 @@ class MainWindow(QMainWindow):
                 )
                 return
 
+        elif self.current_operation == 'metadata':
+            # Check that at least one metadata operation is selected
+            has_clear = any(cb.isChecked() for cb in self.metadata_clear_checks.values())
+            has_set = any(inp.text().strip() for inp in self.metadata_set_inputs.values())
+
+            if not has_clear and not has_set:
+                QMessageBox.warning(
+                    self,
+                    'No Metadata Operations',
+                    'Please select at least one field to clear or set a new value for at least one field.'
+                )
+                return
+
         # Get operation configuration
         operation_config = self._get_operation_config()
 
@@ -548,7 +920,58 @@ class MainWindow(QMainWindow):
                 'search_footers': self.footers_check.isChecked()
             }
 
-        # TODO: Add configurations for other operations
+        elif self.current_operation == 'metadata':
+            # Build metadata operations config
+            clear_fields = []
+            set_fields = {}
+
+            for field_id, checkbox in self.metadata_clear_checks.items():
+                if checkbox.isChecked():
+                    clear_fields.append(field_id)
+
+            for field_id, input_widget in self.metadata_set_inputs.items():
+                if input_widget.text().strip():
+                    set_fields[field_id] = input_widget.text().strip()
+
+            return {
+                'metadata_operations': {
+                    'clear': clear_fields,
+                    'set': set_fields
+                }
+            }
+
+        elif self.current_operation == 'validate':
+            return {
+                'validation_rules': {
+                    'check_heading_hierarchy': self.validate_heading_check.isChecked(),
+                    'check_empty_paragraphs': self.validate_empty_check.isChecked(),
+                    'check_placeholders': self.validate_placeholder_check.isChecked(),
+                    'check_whitespace': self.validate_whitespace_check.isChecked()
+                }
+            }
+
+        elif self.current_operation == 'table_format':
+            return {
+                'table_options': {
+                    'standardize_borders': self.table_borders_check.isChecked(),
+                    'header_background': self.table_header_bg_check.isChecked(),
+                    'zebra_striping': self.table_zebra_check.isChecked(),
+                    'alignment': self.table_alignment_combo.currentText().lower(),
+                    'padding_pt': self.table_padding_spin.value()
+                }
+            }
+
+        elif self.current_operation == 'style_enforce':
+            return {
+                'style_options': {
+                    'standardize_font': self.style_font_check.isChecked(),
+                    'font_name': self.style_font_name_input.text(),
+                    'font_size_pt': self.style_font_size_spin.value(),
+                    'enforce_headings': self.style_heading_check.isChecked(),
+                    'normalize_spacing': self.style_spacing_check.isChecked()
+                }
+            }
+
         return {}
 
     def _on_job_completed(self, results: dict):

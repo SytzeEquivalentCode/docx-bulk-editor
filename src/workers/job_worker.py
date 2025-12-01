@@ -323,6 +323,9 @@ class JobWorker(QThread):
         processor_map = {
             'search_replace': 'src.processors.search_replace',
             'metadata': 'src.processors.metadata',
+            'validate': 'src.processors.validator',
+            'table_format': 'src.processors.table_formatter',
+            'style_enforce': 'src.processors.style_enforcer',
         }
 
         module_name = processor_map.get(self.operation)
