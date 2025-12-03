@@ -21,6 +21,7 @@ logs/
 
 # Testing
 .pytest_cache/
+test_bug.docx
 .coverage
 htmlcov/
 coverage.xml

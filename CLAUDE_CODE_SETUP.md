@@ -110,7 +110,7 @@ After Claude completes a response, the hook:
         "hooks": [
           {
             "type": "command",
-            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File \"C:\\Users\\s.pakvis\\.claude\\taskmaster-continue.ps1\""
+            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File \"$HOME\\.claude\\taskmaster-continue.ps1\""
           }
         ]
       }
