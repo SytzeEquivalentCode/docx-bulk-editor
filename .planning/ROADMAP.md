@@ -64,10 +64,13 @@ Plans:
   2. BackupManager creates backups before processing, restores after failures, and cleans up old backups per retention policy
   3. Logger rotates files correctly and uses UTF-8 encoding on Windows
   4. DatabaseManager performs CRUD operations, handles transactions, and applies schema migrations correctly
-**Plans**: TBD
+**Plans**: 4 plans
 
 Plans:
-- [ ] TBD (after planning)
+- [ ] 03-01-PLAN.md — Fix failing schema validation test (schema drift)
+- [ ] 03-02-PLAN.md — Add error condition tests from CONTEXT.md
+- [ ] 03-03-PLAN.md — Add pytest markers for test filtering consistency
+- [ ] 03-04-PLAN.md — Verify Phase 3 success criteria (checkpoint)
 
 ### Phase 4: GUI Tests
 **Goal**: UI components validated for user interactions using pytest-qt
@@ -105,6 +108,6 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 |-------|----------------|--------|-----------|
 | 1. Test Infrastructure | 2/2 | Complete | 2026-01-30 |
 | 2. Processor Tests | 7/7 | Complete | 2026-01-30 |
-| 3. Core Infrastructure Tests | 0/TBD | Not started | - |
+| 3. Core Infrastructure Tests | 0/4 | In Progress | - |
 | 4. GUI Tests | 0/TBD | Not started | - |
 | 5. Integration & E2E Tests | 0/TBD | Not started | - |
