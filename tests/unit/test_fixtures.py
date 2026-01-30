@@ -297,6 +297,93 @@ class TestHelperFunctions:
 # Documentation: Blocked fixtures requiring src/ implementation
 # ============================================================================
 
+# ============================================================================
+# Extended Fixture Tests (Phase 02)
+# ============================================================================
+
+@pytest.mark.unit
+class TestDocxWithTable:
+    """Tests for docx_with_table fixture."""
+
+    def test_creates_default_table(self, docx_with_table):
+        """Default call creates 3x2 table with headers."""
+        doc_path = docx_with_table()
+        doc = Document(str(doc_path))
+
+        assert len(doc.tables) == 1
+        table = doc.tables[0]
+        assert len(table.rows) == 3
+        assert len(table.columns) == 2
+
+        # Verify header row
+        assert table.cell(0, 0).text == "Header 1"
+        assert table.cell(0, 1).text == "Header 2"
+
+        # Verify data rows
+        assert table.cell(1, 0).text == "R1C0"
+
+    def test_custom_dimensions(self, docx_with_table):
+        """Can create tables with custom row/column counts."""
+        doc_path = docx_with_table(rows=5, cols=4)
+        doc = Document(str(doc_path))
+
+        table = doc.tables[0]
+        assert len(table.rows) == 5
+        assert len(table.columns) == 4
+
+    def test_custom_cell_text(self, docx_with_table):
+        """Can use custom cell text template."""
+        doc_path = docx_with_table(rows=2, cols=2, cell_text="Cell-{row}-{col}", header_row=False)
+        doc = Document(str(doc_path))
+
+        table = doc.tables[0]
+        assert table.cell(0, 0).text == "Cell-0-0"
+        assert table.cell(1, 1).text == "Cell-1-1"
+
+
+@pytest.mark.unit
+class TestDocxWithMetadata:
+    """Tests for docx_with_metadata fixture."""
+
+    def test_creates_document_with_default_metadata(self, docx_with_metadata):
+        """Default call creates document with all metadata fields populated."""
+        doc_path = docx_with_metadata()
+        doc = Document(str(doc_path))
+
+        assert doc.core_properties.author == "Test Author"
+        assert doc.core_properties.title == "Test Document"
+        assert doc.core_properties.subject == "Test Subject"
+        assert doc.core_properties.keywords == "test, keywords"
+        assert doc.core_properties.category == "Test Category"
+        assert doc.core_properties.comments == "Test comments"
+
+    def test_custom_metadata_values(self, docx_with_metadata):
+        """Can create document with custom metadata values."""
+        doc_path = docx_with_metadata(
+            author="Custom Author",
+            title="Custom Title"
+        )
+        doc = Document(str(doc_path))
+
+        assert doc.core_properties.author == "Custom Author"
+        assert doc.core_properties.title == "Custom Title"
+
+    def test_unicode_metadata(self, docx_with_metadata):
+        """Handles Unicode in metadata fields."""
+        doc_path = docx_with_metadata(
+            author="作者名",
+            title="Document 文档"
+        )
+        doc = Document(str(doc_path))
+
+        assert doc.core_properties.author == "作者名"
+        assert doc.core_properties.title == "Document 文档"
+
+
+# ============================================================================
+# Documentation: Blocked fixtures requiring src/ implementation
+# ============================================================================
+
 @pytest.mark.unit
 @pytest.mark.skip(reason="test_db fixture requires src.database.db_manager.DatabaseManager")
 class TestTestDb:
