@@ -71,6 +71,7 @@ class TestDatabaseInitialization:
             "successful_files": "INTEGER",
             "failed_files": "INTEGER",
             "total_changes": "INTEGER",
+            "duration_seconds": "REAL",
             "error_message": "TEXT"
         }
 
