@@ -591,3 +591,484 @@ class TestTableReplacement:
         count = _replace_in_table(doc.tables[0], pattern, 'REPLACED')
 
         assert count == 1
+
+
+# ============================================================================
+# Header/Footer Replacement Tests
+# ============================================================================
+
+class TestHeaderFooterReplacement:
+    """Tests for header and footer search/replace."""
+
+    @pytest.mark.unit
+    def test_replace_in_header(self, tmp_path):
+        """Text replacement in document header."""
+        doc = Document()
+        doc.add_paragraph('Body content')
+        section = doc.sections[0]
+        section.header.paragraphs[0].text = 'This is the header text'
+
+        doc_path = tmp_path / "header.docx"
+        doc.save(str(doc_path))
+        doc = Document(str(doc_path))
+
+        config = {
+            'search_term': 'header',
+            'replace_term': 'HEADER',
+            'use_regex': False,
+            'case_sensitive': False,
+            'whole_words': False,
+            'search_body': False,
+            'search_tables': False,
+            'search_headers': True,
+            'search_footers': False
+        }
+
+        count = perform_search_replace(doc, config)
+
+        assert count == 1
+        assert 'HEADER' in doc.sections[0].header.paragraphs[0].text
+
+    @pytest.mark.unit
+    def test_replace_in_footer(self, tmp_path):
+        """Text replacement in document footer."""
+        doc = Document()
+        doc.add_paragraph('Body content')
+        section = doc.sections[0]
+        section.footer.paragraphs[0].text = 'This is the footer text'
+
+        doc_path = tmp_path / "footer.docx"
+        doc.save(str(doc_path))
+        doc = Document(str(doc_path))
+
+        config = {
+            'search_term': 'footer',
+            'replace_term': 'FOOTER',
+            'use_regex': False,
+            'case_sensitive': False,
+            'whole_words': False,
+            'search_body': False,
+            'search_tables': False,
+            'search_headers': False,
+            'search_footers': True
+        }
+
+        count = perform_search_replace(doc, config)
+
+        assert count == 1
+        assert 'FOOTER' in doc.sections[0].footer.paragraphs[0].text
+
+    @pytest.mark.unit
+    def test_replace_in_both_header_and_footer(self, tmp_path):
+        """Replacement in both header and footer."""
+        doc = Document()
+        doc.add_paragraph('Body content')
+        section = doc.sections[0]
+        section.header.paragraphs[0].text = 'Header with test'
+        section.footer.paragraphs[0].text = 'Footer with test'
+
+        doc_path = tmp_path / "both.docx"
+        doc.save(str(doc_path))
+        doc = Document(str(doc_path))
+
+        config = {
+            'search_term': 'test',
+            'replace_term': 'TEST',
+            'use_regex': False,
+            'case_sensitive': False,
+            'whole_words': False,
+            'search_body': False,
+            'search_tables': False,
+            'search_headers': True,
+            'search_footers': True
+        }
+
+        count = perform_search_replace(doc, config)
+
+        assert count == 2
+        assert 'TEST' in doc.sections[0].header.paragraphs[0].text
+        assert 'TEST' in doc.sections[0].footer.paragraphs[0].text
+
+    @pytest.mark.unit
+    def test_header_footer_disabled(self, tmp_path):
+        """Headers/footers not searched when flags are False."""
+        doc = Document()
+        doc.add_paragraph('Body content')
+        section = doc.sections[0]
+        section.header.paragraphs[0].text = 'Header with test'
+        section.footer.paragraphs[0].text = 'Footer with test'
+
+        doc_path = tmp_path / "disabled.docx"
+        doc.save(str(doc_path))
+        doc = Document(str(doc_path))
+
+        config = {
+            'search_term': 'test',
+            'replace_term': 'REPLACED',
+            'use_regex': False,
+            'case_sensitive': False,
+            'whole_words': False,
+            'search_body': True,
+            'search_tables': True,
+            'search_headers': False,
+            'search_footers': False
+        }
+
+        count = perform_search_replace(doc, config)
+
+        assert count == 0  # No matches in body/tables
+        assert 'test' in doc.sections[0].header.paragraphs[0].text  # Unchanged
+
+    @pytest.mark.unit
+    def test_multiple_sections_with_headers(self, tmp_path):
+        """Document with multiple sections having headers."""
+        doc = Document()
+        doc.add_paragraph('Section 1')
+        section1 = doc.sections[0]
+        section1.header.paragraphs[0].text = 'Header 1'
+
+        # Add second section
+        doc.add_section()
+        doc.add_paragraph('Section 2')
+        section2 = doc.sections[1]
+        section2.header.paragraphs[0].text = 'Header 2'
+
+        doc_path = tmp_path / "multi_section.docx"
+        doc.save(str(doc_path))
+        doc = Document(str(doc_path))
+
+        config = {
+            'search_term': 'Header',
+            'replace_term': 'TITLE',
+            'use_regex': False,
+            'case_sensitive': True,
+            'whole_words': False,
+            'search_body': False,
+            'search_tables': False,
+            'search_headers': True,
+            'search_footers': False
+        }
+
+        count = perform_search_replace(doc, config)
+
+        # At least one 'Header' should be found (section headers may be linked)
+        assert count >= 1
+
+
+# ============================================================================
+# perform_search_replace Tests
+# ============================================================================
+
+class TestPerformSearchReplace:
+    """Tests for perform_search_replace function."""
+
+    @pytest.mark.unit
+    def test_search_all_sections(self, tmp_path):
+        """Search body, tables, headers, footers simultaneously."""
+        doc = Document()
+        doc.add_paragraph('Body test')
+        table = doc.add_table(rows=1, cols=1)
+        table.cell(0, 0).text = 'Table test'
+        doc.sections[0].header.paragraphs[0].text = 'Header test'
+        doc.sections[0].footer.paragraphs[0].text = 'Footer test'
+
+        doc_path = tmp_path / "all.docx"
+        doc.save(str(doc_path))
+        doc = Document(str(doc_path))
+
+        config = {
+            'search_term': 'test',
+            'replace_term': 'REPLACED',
+            'use_regex': False,
+            'case_sensitive': False,
+            'whole_words': False,
+            'search_body': True,
+            'search_tables': True,
+            'search_headers': True,
+            'search_footers': True
+        }
+
+        count = perform_search_replace(doc, config)
+
+        assert count == 4
+
+    @pytest.mark.unit
+    def test_search_only_body(self, docx_factory):
+        """Search only body paragraphs."""
+        doc_path = docx_factory(content="Main test content")
+        doc = Document(str(doc_path))
+
+        config = {
+            'search_term': 'test',
+            'replace_term': 'REPLACED',
+            'use_regex': False,
+            'case_sensitive': False,
+            'whole_words': False,
+            'search_body': True,
+            'search_tables': False,
+            'search_headers': False,
+            'search_footers': False
+        }
+
+        count = perform_search_replace(doc, config)
+
+        assert count == 1
+
+    @pytest.mark.unit
+    def test_search_only_tables(self, docx_with_table):
+        """Search only tables."""
+        doc_path = docx_with_table(rows=2, cols=2)
+        doc = Document(str(doc_path))
+
+        config = {
+            'search_term': 'Header',
+            'replace_term': 'HEADER',
+            'use_regex': False,
+            'case_sensitive': True,
+            'whole_words': False,
+            'search_body': False,
+            'search_tables': True,
+            'search_headers': False,
+            'search_footers': False
+        }
+
+        count = perform_search_replace(doc, config)
+
+        assert count == 2
+
+
+# ============================================================================
+# process_document Integration Tests
+# ============================================================================
+
+class TestProcessDocument:
+    """Integration tests for process_document function."""
+
+    @pytest.mark.unit
+    def test_returns_processor_result(self, docx_factory):
+        """Should return a valid ProcessorResult."""
+        doc_path = docx_factory(content="Hello world\nHello again")
+
+        config = {
+            'search_term': 'Hello',
+            'replace_term': 'Goodbye',
+            'use_regex': False,
+            'case_sensitive': True,
+            'whole_words': False,
+            'search_body': True,
+            'search_tables': False,
+            'search_headers': False,
+            'search_footers': False
+        }
+
+        result = process_document(str(doc_path), config)
+
+        assert isinstance(result, ProcessorResult)
+        assert result.success is True
+        assert result.changes_made == 2
+        assert result.duration_seconds > 0
+
+    @pytest.mark.unit
+    def test_saves_document_with_changes(self, docx_factory):
+        """Document saved when changes made."""
+        doc_path = docx_factory(content="Hello world")
+
+        config = {
+            'search_term': 'Hello',
+            'replace_term': 'Goodbye',
+            'use_regex': False,
+            'case_sensitive': True,
+            'whole_words': False,
+            'search_body': True,
+            'search_tables': False,
+            'search_headers': False,
+            'search_footers': False
+        }
+
+        result = process_document(str(doc_path), config)
+
+        assert result.success is True
+
+        # Reload and verify
+        doc = Document(str(doc_path))
+        text = '\n'.join([p.text for p in doc.paragraphs])
+        assert 'Goodbye' in text
+        assert 'Hello' not in text
+
+    @pytest.mark.unit
+    def test_handles_file_not_found(self):
+        """Handles missing file gracefully."""
+        config = {
+            'search_term': 'test',
+            'replace_term': 'sample',
+            'use_regex': False,
+            'case_sensitive': True,
+            'whole_words': False
+        }
+
+        result = process_document('/nonexistent/file.docx', config)
+
+        assert result.success is False
+        assert result.changes_made == 0
+        assert result.error_message is not None
+
+    @pytest.mark.unit
+    def test_handles_corrupted_file(self, tmp_path):
+        """Handles corrupted files gracefully."""
+        corrupted = tmp_path / "corrupted.docx"
+        corrupted.write_text("Not a valid DOCX", encoding='utf-8')
+
+        config = {
+            'search_term': 'test',
+            'replace_term': 'sample',
+            'use_regex': False,
+            'case_sensitive': True,
+            'whole_words': False
+        }
+
+        result = process_document(str(corrupted), config)
+
+        assert result.success is False
+        assert result.error_message is not None
+
+    @pytest.mark.unit
+    def test_no_match_returns_zero_changes(self, docx_factory):
+        """No matches returns zero changes."""
+        doc_path = docx_factory(content="Hello world")
+
+        config = {
+            'search_term': 'notfound',
+            'replace_term': 'replacement',
+            'use_regex': False,
+            'case_sensitive': True,
+            'whole_words': False,
+            'search_body': True,
+            'search_tables': False,
+            'search_headers': False,
+            'search_footers': False
+        }
+
+        result = process_document(str(doc_path), config)
+
+        assert result.success is True
+        assert result.changes_made == 0
+
+
+# ============================================================================
+# Edge Cases
+# ============================================================================
+
+class TestEdgeCases:
+    """Edge case and special scenario tests."""
+
+    @pytest.mark.unit
+    def test_empty_document(self, docx_factory):
+        """Empty document handled gracefully."""
+        doc_path = docx_factory(content="")
+
+        config = {
+            'search_term': 'test',
+            'replace_term': 'replacement',
+            'use_regex': False,
+            'case_sensitive': True,
+            'whole_words': False,
+            'search_body': True,
+            'search_tables': False,
+            'search_headers': False,
+            'search_footers': False
+        }
+
+        result = process_document(str(doc_path), config)
+
+        assert result.success is True
+        assert result.changes_made == 0
+
+    @pytest.mark.unit
+    def test_empty_search_term(self, docx_factory):
+        """Empty search term behavior."""
+        doc_path = docx_factory(content="test")
+
+        pattern = _compile_pattern('', use_regex=False, case_sensitive=True, whole_words=False)
+        # Empty pattern matches everywhere
+        assert pattern.search('test') is not None
+
+    @pytest.mark.unit
+    def test_replacement_with_empty_string(self, docx_factory):
+        """Replacing with empty string removes text."""
+        doc_path = docx_factory(content="Hello world")
+        doc = Document(str(doc_path))
+
+        pattern = _compile_pattern('Hello ', use_regex=False, case_sensitive=True, whole_words=False)
+        count = _replace_in_paragraph(doc.paragraphs[0], pattern, '')
+
+        assert count == 1
+        assert doc.paragraphs[0].text == 'world'
+
+    @pytest.mark.unit
+    @pytest.mark.parametrize("search,replace,expected_count", [
+        ("test", "TEST", 3),
+        ("TEST", "test", 0),  # Case sensitive
+        ("test", "replacement", 3),
+    ])
+    def test_various_replacement_scenarios(self, docx_factory, search, replace, expected_count):
+        """Various replacement scenarios."""
+        doc_path = docx_factory(content="test test test")
+        doc = Document(str(doc_path))
+
+        config = {
+            'search_term': search,
+            'replace_term': replace,
+            'use_regex': False,
+            'case_sensitive': True,
+            'whole_words': False,
+            'search_body': True,
+            'search_tables': False,
+            'search_headers': False,
+            'search_footers': False
+        }
+
+        count = perform_search_replace(doc, config)
+        assert count == expected_count
+
+    @pytest.mark.unit
+    def test_large_document_handling(self, large_docx):
+        """Large document processing works correctly."""
+        config = {
+            'search_term': 'content',
+            'replace_term': 'CONTENT',
+            'use_regex': False,
+            'case_sensitive': False,
+            'whole_words': False,
+            'search_body': True,
+            'search_tables': False,
+            'search_headers': False,
+            'search_footers': False
+        }
+
+        result = process_document(str(large_docx), config)
+
+        assert result.success is True
+        assert result.changes_made >= 1  # At least some matches
+
+    @pytest.mark.unit
+    def test_special_chars_in_replacement(self, docx_factory):
+        """Special characters in replacement text."""
+        doc_path = docx_factory(content="Hello world")
+        doc = Document(str(doc_path))
+
+        config = {
+            'search_term': 'world',
+            'replace_term': '$100 & <more>',
+            'use_regex': False,
+            'case_sensitive': True,
+            'whole_words': False,
+            'search_body': True,
+            'search_tables': False,
+            'search_headers': False,
+            'search_footers': False
+        }
+
+        count = perform_search_replace(doc, config)
+
+        assert count == 1
+        assert '$100 & <more>' in doc.paragraphs[0].text
