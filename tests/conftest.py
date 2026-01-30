@@ -406,7 +406,6 @@ def unicode_filename(tmp_path):
 
 
 @pytest.fixture
-@windows_only
 def unc_path(tmp_path):
     """
     Create UNC (Universal Naming Convention) network path for testing.
@@ -424,6 +423,8 @@ def unc_path(tmp_path):
         def test_unc_path_handling(unc_path):
             assert str(unc_path).startswith("\\\\\\\\")
     """
+    if sys.platform != "win32":
+        pytest.skip("Windows-specific fixture (requires Win32 platform)")
     local_path = str(tmp_path.resolve())
 
     # Convert C:\... to \\localhost\C$\...
