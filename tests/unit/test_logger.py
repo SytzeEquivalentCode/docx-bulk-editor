@@ -10,6 +10,7 @@ from src.core.config import ConfigManager
 from src.core.logger import setup_logger, get_logger
 
 
+@pytest.mark.unit
 class TestLoggerSetup:
     """Test suite for logger setup functionality."""
 
@@ -244,6 +245,7 @@ class TestLoggerSetup:
             assert "Test message in path with spaces" in content
 
 
+@pytest.mark.unit
 class TestLoggerIntegration:
     """Integration tests for logger with ConfigManager."""
 

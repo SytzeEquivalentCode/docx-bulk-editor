@@ -10,6 +10,7 @@ import pytest
 from src.database.db_manager import DatabaseManager
 
 
+@pytest.mark.unit
 class TestDatabaseInitialization:
     """Test suite for database initialization and schema creation."""
 
@@ -164,6 +165,7 @@ class TestDatabaseInitialization:
         assert columns == expected_columns
 
 
+@pytest.mark.unit
 class TestDatabaseIndexes:
     """Test suite for database indexes."""
 
@@ -212,6 +214,7 @@ class TestDatabaseIndexes:
         assert "idx_jobs_status" in index_names
 
 
+@pytest.mark.unit
 class TestForeignKeys:
     """Test suite for foreign key constraints."""
 
@@ -282,6 +285,7 @@ class TestForeignKeys:
             assert row["job_id"] is None
 
 
+@pytest.mark.unit
 class TestConnectionManager:
     """Test suite for connection management."""
 
@@ -356,6 +360,7 @@ class TestConnectionManager:
             assert "value" in row.keys()
 
 
+@pytest.mark.unit
 class TestIDGeneration:
     """Test suite for ID generation."""
 
@@ -378,6 +383,7 @@ class TestIDGeneration:
         assert all(c in "0123456789abcdef" for c in generated_id)
 
 
+@pytest.mark.unit
 class TestThreadSafety:
     """Test suite for thread safety."""
 
@@ -422,6 +428,7 @@ class TestThreadSafety:
             assert cursor.fetchone()["count"] == 50  # 5 threads * 10 inserts
 
 
+@pytest.mark.unit
 class TestSettingsMethods:
     """Test suite for settings helper methods."""
 
