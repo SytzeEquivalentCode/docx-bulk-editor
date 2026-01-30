@@ -52,26 +52,25 @@ None yet.
 
 ### Blockers/Concerns
 
-**Current blockers:**
-- 13 test files fail to collect due to import errors from non-existent src/ modules
-  - Affected: test_backup.py, test_config.py, test_db_manager.py, test_logger.py, test_metadata.py,
-    test_paragraph_replacement.py, test_processor_result.py, test_search_replace_patterns.py,
-    test_style_enforcer.py, test_table_header_footer.py, test_validator.py, test_main_window.py,
-    test_core_infrastructure.py
-  - Root cause: Tests import from src.core.*, src.database.*, src.processors.*, src.ui.*, src.workers.*
-  - These modules exist but have incomplete implementations or missing dependencies
-  - conftest.py fixtures `test_db` and `test_config` also blocked (import DatabaseManager, ConfigManager)
+**[RESOLVED] Import path blocker (2026-01-30):**
+- Fixed: Added `pythonpath = .` to pytest.ini
+- Result: All 13 previously-blocked test files now COLLECT successfully
+- Note: Tests may still SKIP or FAIL due to incomplete src/ module implementations
+  - This is expected behavior - collection errors vs test failures are different:
+  - Collection error: pytest cannot load test file (blocks test runner)
+  - Test failure/skip: pytest loads file, test runs but doesn't pass (normal feedback)
+- conftest.py fixtures `test_db` and `test_config` now import successfully
 
 **Working infrastructure (validated 2026-01-30):**
-- 8 tests collect successfully (test_processing_speed.py performance benchmarks)
+- All 327 tests collect successfully (0 collection errors)
 - 34 fixture validation tests pass (tests/unit/test_fixtures.py)
 - Working fixtures: docx_factory, sample_docx, complex_docx, large_docx, multiple_docx,
-  temp_workspace, mock_config, unicode_filename, qapp, cleanup_workers
+  temp_workspace, mock_config, unicode_filename, qapp, cleanup_workers, test_db, test_config
 - Helper functions work: assert_docx_contains_text, assert_docx_property
 
-**Resolution path:**
-- Phase 2+ will implement src/ modules, which will unblock the 13 failing test files
-- No action needed on test infrastructure itself - fixtures are correctly implemented
+**Next steps:**
+- Phase 2+ will implement src/ modules, which will make currently-skipping tests pass
+- Test infrastructure is complete - fixtures work, collection works
 
 ## Session Continuity
 
