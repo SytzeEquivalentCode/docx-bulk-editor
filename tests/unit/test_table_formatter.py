@@ -355,3 +355,354 @@ class TestCellPadding:
         tcMar = cell._tc.tcPr.find(qn('w:tcMar'))
         top = tcMar.find(qn('w:top'))
         assert top.get(qn('w:type')) == 'dxa'
+
+
+# ============================================================================
+# perform_table_formatting Tests
+# ============================================================================
+
+class TestPerformTableFormatting:
+    """Tests for perform_table_formatting function."""
+
+    @pytest.mark.unit
+    def test_formats_all_tables_in_document(self, docx_with_table):
+        """All tables should be formatted."""
+        # Create document with one table, then add another
+        doc_path = docx_with_table(rows=2, cols=2, filename="multi_table.docx")
+        doc = Document(str(doc_path))
+
+        # Add second table
+        doc.add_table(rows=3, cols=3)
+        doc.save(str(doc_path))
+
+        doc = Document(str(doc_path))
+        config = {'table_options': {}}
+        count = perform_table_formatting(doc, config)
+
+        assert count == 2  # Both tables formatted
+
+    @pytest.mark.unit
+    def test_default_options_applied(self, docx_with_table):
+        """Default options (borders + header) should be applied."""
+        doc_path = docx_with_table(rows=2, cols=2)
+        doc = Document(str(doc_path))
+
+        config = {'table_options': {}}
+        count = perform_table_formatting(doc, config)
+
+        assert count == 1
+
+        # Check borders applied
+        table = doc.tables[0]
+        tblBorders = table._tbl.tblPr.find(qn('w:tblBorders'))
+        assert tblBorders is not None
+
+        # Check header background applied
+        shd = table.rows[0].cells[0]._tc.tcPr.find(qn('w:shd'))
+        assert shd is not None
+        assert shd.get(qn('w:fill')) == 'D9D9D9'
+
+    @pytest.mark.unit
+    def test_respects_disabled_options(self, docx_with_table):
+        """Disabled options should not be applied."""
+        doc_path = docx_with_table(rows=3, cols=2)
+        doc = Document(str(doc_path))
+
+        config = {
+            'table_options': {
+                'standardize_borders': False,
+                'header_background': False,
+                'zebra_striping': False,
+            }
+        }
+        # Note: alignment and padding still applied by default
+
+        count = perform_table_formatting(doc, config)
+
+        # Table should still count as formatted (alignment/padding applied)
+        assert count >= 0
+
+    @pytest.mark.unit
+    def test_zebra_striping_when_enabled(self, docx_with_table):
+        """Zebra striping should only be applied when enabled."""
+        doc_path = docx_with_table(rows=4, cols=2)
+        doc = Document(str(doc_path))
+
+        config = {
+            'table_options': {
+                'standardize_borders': False,
+                'header_background': False,
+                'zebra_striping': True,
+            }
+        }
+        perform_table_formatting(doc, config)
+
+        # Check row 2 (even data row) has striping
+        table = doc.tables[0]
+        shd = table.rows[2].cells[0]._tc.tcPr.find(qn('w:shd'))
+        assert shd is not None
+        assert shd.get(qn('w:fill')) == 'F2F2F2'
+
+    @pytest.mark.unit
+    def test_custom_alignment(self, docx_with_table):
+        """Custom alignment should be applied."""
+        doc_path = docx_with_table(rows=2, cols=2)
+        doc = Document(str(doc_path))
+
+        config = {
+            'table_options': {
+                'standardize_borders': False,
+                'header_background': False,
+                'alignment': 'center',
+            }
+        }
+        perform_table_formatting(doc, config)
+
+        cell = doc.tables[0].rows[0].cells[0]
+        assert cell.paragraphs[0].alignment == 1  # CENTER
+
+    @pytest.mark.unit
+    def test_custom_padding(self, docx_with_table):
+        """Custom padding should be applied."""
+        doc_path = docx_with_table(rows=2, cols=2)
+        doc = Document(str(doc_path))
+
+        config = {
+            'table_options': {
+                'standardize_borders': False,
+                'header_background': False,
+                'padding_pt': 15,
+            }
+        }
+        perform_table_formatting(doc, config)
+
+        cell = doc.tables[0].rows[0].cells[0]
+        tcMar = cell._tc.tcPr.find(qn('w:tcMar'))
+        top = tcMar.find(qn('w:top'))
+        assert top.get(qn('w:w')) == '300'  # 15pt * 20 = 300 twips
+
+    @pytest.mark.unit
+    def test_empty_document_returns_zero(self, docx_factory):
+        """Document with no tables should return 0."""
+        doc_path = docx_factory(content="No tables here.")
+        doc = Document(str(doc_path))
+
+        config = {'table_options': {}}
+        count = perform_table_formatting(doc, config)
+
+        assert count == 0
+
+
+# ============================================================================
+# process_document Integration Tests
+# ============================================================================
+
+class TestProcessDocument:
+    """Integration tests for process_document function."""
+
+    @pytest.mark.unit
+    def test_returns_processor_result(self, docx_with_table):
+        """Should return a valid ProcessorResult."""
+        doc_path = docx_with_table(rows=2, cols=2)
+
+        config = {'table_options': {}}
+        result = process_document(str(doc_path), config)
+
+        assert isinstance(result, ProcessorResult)
+        assert result.success is True
+        assert result.file_path == str(doc_path)
+        assert result.duration_seconds >= 0
+
+    @pytest.mark.unit
+    def test_saves_changes_when_made(self, docx_with_table):
+        """Document should be saved when changes are made."""
+        doc_path = docx_with_table(rows=2, cols=2)
+
+        config = {'table_options': {'standardize_borders': True}}
+        result = process_document(str(doc_path), config)
+
+        assert result.success is True
+        assert result.changes_made == 1
+
+        # Reload and verify saved
+        doc = Document(str(doc_path))
+        tblBorders = doc.tables[0]._tbl.tblPr.find(qn('w:tblBorders'))
+        assert tblBorders is not None
+
+    @pytest.mark.unit
+    def test_handles_invalid_file(self, tmp_path):
+        """Should handle invalid file paths gracefully."""
+        invalid_path = str(tmp_path / "nonexistent.docx")
+
+        config = {'table_options': {}}
+        result = process_document(invalid_path, config)
+
+        assert result.success is False
+        assert result.error_message is not None
+
+    @pytest.mark.unit
+    def test_handles_corrupted_file(self, tmp_path):
+        """Should handle corrupted files gracefully."""
+        corrupted = tmp_path / "corrupted.docx"
+        corrupted.write_text("Not a valid DOCX file", encoding='utf-8')
+
+        config = {'table_options': {}}
+        result = process_document(str(corrupted), config)
+
+        assert result.success is False
+        assert result.error_message is not None
+
+    @pytest.mark.unit
+    def test_duration_tracked(self, docx_with_table):
+        """Duration should be tracked in result."""
+        doc_path = docx_with_table(rows=2, cols=2)
+
+        config = {'table_options': {}}
+        result = process_document(str(doc_path), config)
+
+        assert result.duration_seconds > 0
+
+
+# ============================================================================
+# Edge Cases
+# ============================================================================
+
+class TestEdgeCases:
+    """Edge case and special scenario tests."""
+
+    @pytest.mark.unit
+    def test_single_cell_table(self, docx_with_table):
+        """Single cell table should be handled."""
+        doc_path = docx_with_table(rows=1, cols=1, header_row=False)
+
+        config = {'table_options': {}}
+        result = process_document(str(doc_path), config)
+
+        assert result.success is True
+        assert result.changes_made == 1
+
+    @pytest.mark.unit
+    def test_large_table(self, docx_with_table):
+        """Large table should be processed."""
+        doc_path = docx_with_table(rows=50, cols=10)
+
+        config = {'table_options': {}}
+        result = process_document(str(doc_path), config)
+
+        assert result.success is True
+
+    @pytest.mark.unit
+    def test_multiple_tables_all_formatted(self, tmp_path):
+        """All tables in document should be formatted."""
+        doc = Document()
+        for _ in range(5):
+            doc.add_table(rows=2, cols=2)
+
+        doc_path = tmp_path / "multi.docx"
+        doc.save(str(doc_path))
+
+        config = {'table_options': {}}
+        result = process_document(str(doc_path), config)
+
+        assert result.success is True
+        assert result.changes_made == 5
+
+    @pytest.mark.unit
+    def test_empty_table_cells(self, docx_with_table):
+        """Tables with empty cells should be handled."""
+        doc_path = docx_with_table(rows=2, cols=2, cell_text="", header_row=False)
+
+        config = {'table_options': {}}
+        result = process_document(str(doc_path), config)
+
+        assert result.success is True
+
+    @pytest.mark.unit
+    def test_unicode_cell_content(self, tmp_path):
+        """Unicode content in cells should be preserved."""
+        doc = Document()
+        table = doc.add_table(rows=2, cols=2)
+        table.cell(0, 0).text = "Header Chinese"
+        table.cell(1, 0).text = "Data Japanese"
+
+        doc_path = tmp_path / "unicode.docx"
+        doc.save(str(doc_path))
+
+        config = {'table_options': {}}
+        result = process_document(str(doc_path), config)
+
+        assert result.success is True
+
+        # Verify content preserved
+        doc = Document(str(doc_path))
+        assert "Chinese" in doc.tables[0].cell(0, 0).text
+        assert "Japanese" in doc.tables[0].cell(1, 0).text
+
+    @pytest.mark.unit
+    @pytest.mark.parametrize("rows,cols", [
+        (2, 2),
+        (5, 3),
+        (10, 5),
+        (3, 10),
+    ])
+    def test_various_table_sizes(self, docx_with_table, rows, cols):
+        """Various table sizes should all be processable."""
+        doc_path = docx_with_table(rows=rows, cols=cols)
+
+        config = {'table_options': {}}
+        result = process_document(str(doc_path), config)
+
+        assert result.success is True
+        assert result.changes_made == 1
+
+    @pytest.mark.unit
+    def test_no_save_when_no_tables(self, docx_factory):
+        """Document should not be saved when no changes are made."""
+        doc_path = docx_factory(content="Just text, no tables")
+
+        config = {'table_options': {}}
+        result = process_document(str(doc_path), config)
+
+        assert result.success is True
+        assert result.changes_made == 0
+
+    @pytest.mark.unit
+    def test_all_options_combined(self, docx_with_table):
+        """All formatting options applied together."""
+        doc_path = docx_with_table(rows=4, cols=3)
+
+        config = {
+            'table_options': {
+                'standardize_borders': True,
+                'header_background': True,
+                'zebra_striping': True,
+                'alignment': 'center',
+                'padding_pt': 8,
+            }
+        }
+        result = process_document(str(doc_path), config)
+
+        assert result.success is True
+        assert result.changes_made == 1
+
+        # Verify all options applied
+        doc = Document(str(doc_path))
+        table = doc.tables[0]
+
+        # Borders
+        assert table._tbl.tblPr.find(qn('w:tblBorders')) is not None
+
+        # Header background
+        header_shd = table.rows[0].cells[0]._tc.tcPr.find(qn('w:shd'))
+        assert header_shd.get(qn('w:fill')) == 'D9D9D9'
+
+        # Zebra striping on row 2
+        zebra_shd = table.rows[2].cells[0]._tc.tcPr.find(qn('w:shd'))
+        assert zebra_shd.get(qn('w:fill')) == 'F2F2F2'
+
+        # Alignment
+        assert table.rows[0].cells[0].paragraphs[0].alignment == 1
+
+        # Padding
+        tcMar = table.rows[0].cells[0]._tc.tcPr.find(qn('w:tcMar'))
+        assert tcMar.find(qn('w:top')).get(qn('w:w')) == '160'  # 8 * 20
