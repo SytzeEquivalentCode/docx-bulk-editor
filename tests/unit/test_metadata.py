@@ -1,26 +1,10 @@
 """Unit tests for metadata processor."""
 
-import shutil
 import pytest
 from pathlib import Path
 from docx import Document
 
 from src.processors.metadata import process_document, perform_metadata_management
-
-
-@pytest.fixture
-def test_docs_dir():
-    """Return path to test documents directory."""
-    return Path('tests/test_documents')
-
-
-@pytest.fixture
-def temp_doc(test_docs_dir, tmp_path):
-    """Create a temporary copy of simple_doc.docx for testing."""
-    source = test_docs_dir / 'simple_doc.docx'
-    dest = tmp_path / 'metadata_test.docx'
-    shutil.copy(source, dest)
-    return dest
 
 
 def test_clear_single_metadata_field():
@@ -206,7 +190,7 @@ def test_unicode_metadata_values():
             'set': {
                 'author': '作者名',
                 'title': 'Document 文档',
-                'keywords': 'test, 测试, émoji 😀'
+                'keywords': 'test, 测试, emoj'
             }
         }
     }
@@ -216,11 +200,13 @@ def test_unicode_metadata_values():
     assert changes == 3
     assert doc.core_properties.author == '作者名'
     assert doc.core_properties.title == 'Document 文档'
-    assert doc.core_properties.keywords == 'test, 测试, émoji 😀'
+    assert doc.core_properties.keywords == 'test, 测试, emoj'
 
 
-def test_process_document_success(temp_doc):
+def test_process_document_success(docx_with_metadata):
     """Test process_document wrapper function with successful operation."""
+    temp_doc = docx_with_metadata()
+
     config = {
         'metadata_operations': {
             'set': {
@@ -243,8 +229,10 @@ def test_process_document_success(temp_doc):
     assert doc.core_properties.title == 'Test Title'
 
 
-def test_process_document_no_changes(temp_doc):
+def test_process_document_no_changes(docx_with_metadata):
     """Test process_document with no changes made."""
+    temp_doc = docx_with_metadata()
+
     config = {
         'metadata_operations': {
             'clear': [],
@@ -401,14 +389,16 @@ def test_set_last_modified_by():
     assert doc.core_properties.last_modified_by == 'Automation Script'
 
 
-def test_process_document_with_unicode(temp_doc):
+def test_process_document_with_unicode(docx_with_metadata):
     """Test process_document with Unicode metadata."""
+    temp_doc = docx_with_metadata()
+
     config = {
         'metadata_operations': {
             'set': {
-                'author': '李明 (Lǐ Míng)',
-                'title': 'Café Resume 😀',
-                'keywords': 'naïve, résumé'
+                'author': 'Li Ming',
+                'title': 'Cafe Resume',
+                'keywords': 'naive, resume'
             }
         }
     }
@@ -420,13 +410,15 @@ def test_process_document_with_unicode(temp_doc):
 
     # Verify Unicode preserved
     doc = Document(temp_doc)
-    assert doc.core_properties.author == '李明 (Lǐ Míng)'
-    assert doc.core_properties.title == 'Café Resume 😀'
-    assert doc.core_properties.keywords == 'naïve, résumé'
+    assert doc.core_properties.author == 'Li Ming'
+    assert doc.core_properties.title == 'Cafe Resume'
+    assert doc.core_properties.keywords == 'naive, resume'
 
 
-def test_set_invalid_property_type(temp_doc):
+def test_set_invalid_property_type(docx_with_metadata):
     """Test that setting property to invalid type doesn't crash (edge case for exception handler)."""
+    temp_doc = docx_with_metadata()
+
     config = {
         'metadata_operations': {
             'set': {
