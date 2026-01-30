@@ -204,6 +204,107 @@ def complex_docx(docx_factory):
 
 
 @pytest.fixture
+def docx_with_table(tmp_path):
+    """Create document with configurable table structure.
+
+    Args:
+        tmp_path: pytest built-in fixture
+
+    Returns:
+        Callable that creates documents with tables
+
+    Example:
+        def test_table_formatting(docx_with_table):
+            doc_path = docx_with_table(rows=3, cols=2, cell_text="Cell {row},{col}")
+            doc = Document(str(doc_path))
+            assert len(doc.tables) == 1
+    """
+    def _create(
+        rows: int = 3,
+        cols: int = 2,
+        cell_text: str | None = None,
+        header_row: bool = True,
+        filename: str = "table_test.docx"
+    ) -> Path:
+        """Create document with table.
+
+        Args:
+            rows: Number of rows including header
+            cols: Number of columns
+            cell_text: Template for cell text, uses {row} and {col} placeholders
+                      If None, uses "R{row}C{col}" format
+            header_row: If True, first row gets "Header {col}" text
+            filename: Output filename
+        """
+        doc = Document()
+        table = doc.add_table(rows=rows, cols=cols)
+
+        for i, row in enumerate(table.rows):
+            for j, cell in enumerate(row.cells):
+                if i == 0 and header_row:
+                    cell.text = f"Header {j + 1}"
+                elif cell_text:
+                    cell.text = cell_text.format(row=i, col=j)
+                else:
+                    cell.text = f"R{i}C{j}"
+
+        file_path = tmp_path / filename
+        doc.save(str(file_path))
+        return file_path
+
+    return _create
+
+
+@pytest.fixture
+def docx_with_metadata(tmp_path):
+    """Create document with pre-populated metadata fields.
+
+    Returns:
+        Callable that creates documents with known metadata
+
+    Example:
+        def test_metadata_clear(docx_with_metadata):
+            doc_path = docx_with_metadata()
+            doc = Document(str(doc_path))
+            assert doc.core_properties.author == "Test Author"
+    """
+    def _create(
+        author: str = "Test Author",
+        title: str = "Test Document",
+        subject: str = "Test Subject",
+        keywords: str = "test, keywords",
+        category: str = "Test Category",
+        comments: str = "Test comments",
+        content: str = "Document content.",
+        filename: str = "metadata_test.docx"
+    ) -> Path:
+        """Create document with specified metadata.
+
+        All metadata fields have defaults to enable quick testing
+        of clear/modify operations.
+        """
+        doc = Document()
+
+        # Add content
+        if content:
+            doc.add_paragraph(content)
+
+        # Set all metadata fields
+        doc.core_properties.author = author
+        doc.core_properties.title = title
+        doc.core_properties.subject = subject
+        doc.core_properties.keywords = keywords
+        doc.core_properties.category = category
+        doc.core_properties.comments = comments
+
+        file_path = tmp_path / filename
+        doc.save(str(file_path))
+        return file_path
+
+    return _create
+
+
+@pytest.fixture
 def mock_config():
     """
     Standard mock configuration for testing.
