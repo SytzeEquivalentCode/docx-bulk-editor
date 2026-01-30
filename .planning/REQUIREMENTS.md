@@ -9,18 +9,18 @@ Requirements for complete test coverage. Each maps to roadmap phases.
 
 ### Test Infrastructure
 
-- [ ] **INFRA-01**: Fix Python import path issues so all tests collect successfully
-- [ ] **INFRA-02**: Create programmatic docx generation fixtures (docx_factory) for reproducible test documents
-- [ ] **INFRA-03**: Create in-memory database fixture for isolated database testing
+- [x] **INFRA-01**: Fix Python import path issues so all tests collect successfully
+- [x] **INFRA-02**: Create programmatic docx generation fixtures (docx_factory) for reproducible test documents
+- [x] **INFRA-03**: Create in-memory database fixture for isolated database testing
 
 ### Processor Tests
 
-- [ ] **PROC-01**: Search & Replace processor — test all replacement scenarios (plain text, regex, case-insensitive)
-- [ ] **PROC-02**: Search & Replace processor — test all document locations (paragraphs, tables, headers, footers)
-- [ ] **PROC-03**: Metadata processor — test reading and writing all metadata fields (author, title, keywords, etc.)
-- [ ] **PROC-04**: Table Formatter processor — test formatting rules application across table structures
-- [ ] **PROC-05**: Style Enforcer processor — test style standardization and enforcement
-- [ ] **PROC-06**: Validator processor — test all validation rules and error reporting
+- [x] **PROC-01**: Search & Replace processor — test all replacement scenarios (plain text, regex, case-insensitive)
+- [x] **PROC-02**: Search & Replace processor — test all document locations (paragraphs, tables, headers, footers)
+- [x] **PROC-03**: Metadata processor — test reading and writing all metadata fields (author, title, keywords, etc.)
+- [x] **PROC-04**: Table Formatter processor — test formatting rules application across table structures
+- [x] **PROC-05**: Style Enforcer processor — test style standardization and enforcement
+- [x] **PROC-06**: Validator processor — test all validation rules and error reporting
 
 ### Core Infrastructure Tests
 
@@ -69,15 +69,15 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| INFRA-01 | Phase 1 | Pending |
-| INFRA-02 | Phase 1 | Pending |
-| INFRA-03 | Phase 1 | Pending |
-| PROC-01 | Phase 2 | Pending |
-| PROC-02 | Phase 2 | Pending |
-| PROC-03 | Phase 2 | Pending |
-| PROC-04 | Phase 2 | Pending |
-| PROC-05 | Phase 2 | Pending |
-| PROC-06 | Phase 2 | Pending |
+| INFRA-01 | Phase 1 | Complete |
+| INFRA-02 | Phase 1 | Complete |
+| INFRA-03 | Phase 1 | Complete |
+| PROC-01 | Phase 2 | Complete |
+| PROC-02 | Phase 2 | Complete |
+| PROC-03 | Phase 2 | Complete |
+| PROC-04 | Phase 2 | Complete |
+| PROC-05 | Phase 2 | Complete |
+| PROC-06 | Phase 2 | Complete |
 | CORE-01 | Phase 3 | Pending |
 | CORE-02 | Phase 3 | Pending |
 | CORE-03 | Phase 3 | Pending |
