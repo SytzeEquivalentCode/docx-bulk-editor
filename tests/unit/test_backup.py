@@ -55,6 +55,7 @@ def corrupt_docx(tmp_path):
     return doc_path
 
 
+@pytest.mark.unit
 class TestBackupManagerInitialization:
     """Test suite for BackupManager initialization."""
 
@@ -86,6 +87,7 @@ class TestBackupManagerInitialization:
         assert nested_dir.exists()
 
 
+@pytest.mark.unit
 class TestBackupCreation:
     """Test suite for backup creation functionality."""
 
@@ -265,6 +267,7 @@ class TestBackupCreation:
         assert row["job_id"] is None
 
 
+@pytest.mark.unit
 class TestBackupValidation:
     """Test suite for backup validation."""
 
@@ -311,6 +314,7 @@ class TestBackupValidation:
             assert len(backup_files) == 0
 
 
+@pytest.mark.unit
 class TestBackupRestoration:
     """Test suite for backup restoration functionality."""
 
@@ -475,6 +479,7 @@ class TestBackupRestoration:
         assert restored_doc.paragraphs[0].text == "Original content"
 
 
+@pytest.mark.unit
 class TestBackupCleanup:
     """Test suite for backup cleanup functionality."""
 
@@ -617,6 +622,7 @@ class TestBackupCleanup:
         assert deleted_count == 0  # No files actually deleted
 
 
+@pytest.mark.unit
 class TestBackupStorageMetrics:
     """Test suite for backup storage metrics."""
 
@@ -675,6 +681,7 @@ class TestBackupStorageMetrics:
         assert usage == 0
 
 
+@pytest.mark.unit
 class TestBackupEdgeCases:
     """Test suite for edge cases and error handling."""
 

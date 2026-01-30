@@ -9,6 +9,7 @@ import pytest
 from src.core.config import ConfigManager
 
 
+@pytest.mark.unit
 class TestConfigManager:
     """Test suite for ConfigManager class."""
 
@@ -197,7 +198,53 @@ class TestConfigManager:
         assert "日本語" in content
         assert "\\u" not in content  # No Unicode escape sequences
 
+    def test_corrupt_json_error_message(self, tmp_path):
+        """Test JSONDecodeError from corrupt JSON includes helpful context.
 
+        The error message should include information about what went wrong
+        to help users diagnose and fix the issue.
+        """
+        config_path = tmp_path / "corrupt_config.json"
+
+        # Write syntactically invalid JSON with specific error
+        with open(config_path, 'w', encoding='utf-8') as f:
+            f.write('{\n  "key": "value",\n  "broken": \n}')  # Missing value
+
+        # Capture the exception and verify message quality
+        with pytest.raises(json.JSONDecodeError) as exc_info:
+            ConfigManager(config_path)
+
+        error = exc_info.value
+        # JSONDecodeError should include line number and position
+        assert error.lineno is not None, "Error should include line number"
+        assert error.colno is not None, "Error should include column number"
+        # The msg should describe what was expected
+        assert len(error.msg) > 0, "Error should have descriptive message"
+
+    def test_type_coercion_safety(self, tmp_path):
+        """Test that setting nested key on non-dict value raises TypeError.
+
+        When config has {"key": "string"} and we call set("key.nested", "value"),
+        the current implementation will fail because setdefault on string returns
+        the string, then trying to set on string fails. This test documents the
+        current behavior and ensures it raises a clear error rather than silently
+        corrupting data.
+        """
+        config_path = tmp_path / "test_config.json"
+        config = ConfigManager(config_path)
+
+        # Set a non-dict value
+        config.set("test_key", "string_value")
+        assert config.get("test_key") == "string_value"
+
+        # Try to set a nested key under the string value
+        # Current implementation: setdefault on string returns the string,
+        # then assignment to string[key] will fail with TypeError
+        with pytest.raises(TypeError):
+            config.set("test_key.nested", "nested_value")
+
+
+@pytest.mark.unit
 class TestConfigManagerIntegration:
     """Integration tests for ConfigManager."""
 
