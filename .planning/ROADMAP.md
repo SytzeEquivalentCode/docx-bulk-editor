@@ -28,10 +28,11 @@ Decimal phases appear between their surrounding integers in numeric order.
   1. pytest collects all test files without import errors
   2. docx_factory fixture generates test documents with specified content and structure
   3. in-memory database fixture provides isolated SQLite instances for tests
-**Plans**: 1 plan
+**Plans**: 2 plans
 
 Plans:
-- [ ] 01-01-PLAN.md — Validate existing fixtures and update project state
+- [x] 01-01-PLAN.md — Validate existing fixtures and update project state
+- [ ] 01-02-PLAN.md — Fix pytest pythonpath configuration (gap closure)
 
 ### Phase 2: Processor Tests
 **Goal**: All document processors validated with comprehensive behavior coverage
@@ -96,7 +97,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Test Infrastructure | 0/1 | Planning complete | - |
+| 1. Test Infrastructure | 1/2 | In progress | - |
 | 2. Processor Tests | 0/TBD | Not started | - |
 | 3. Core Infrastructure Tests | 0/TBD | Not started | - |
 | 4. GUI Tests | 0/TBD | Not started | - |
