@@ -24,10 +24,10 @@ Requirements for complete test coverage. Each maps to roadmap phases.
 
 ### Core Infrastructure Tests
 
-- [ ] **CORE-01**: ConfigManager — test load, save, defaults, validation, missing file handling
-- [ ] **CORE-02**: BackupManager — test create, restore, cleanup, retention policy
-- [ ] **CORE-03**: Logger — test setup, rotation, UTF-8 encoding on Windows
-- [ ] **CORE-04**: DatabaseManager — test CRUD operations, transactions, schema migrations
+- [x] **CORE-01**: ConfigManager — test load, save, defaults, validation, missing file handling
+- [x] **CORE-02**: BackupManager — test create, restore, cleanup, retention policy
+- [x] **CORE-03**: Logger — test setup, rotation, UTF-8 encoding on Windows
+- [x] **CORE-04**: DatabaseManager — test CRUD operations, transactions, schema migrations
 
 ### GUI Tests
 
@@ -78,10 +78,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PROC-04 | Phase 2 | Complete |
 | PROC-05 | Phase 2 | Complete |
 | PROC-06 | Phase 2 | Complete |
-| CORE-01 | Phase 3 | Pending |
-| CORE-02 | Phase 3 | Pending |
-| CORE-03 | Phase 3 | Pending |
-| CORE-04 | Phase 3 | Pending |
+| CORE-01 | Phase 3 | Complete |
+| CORE-02 | Phase 3 | Complete |
+| CORE-03 | Phase 3 | Complete |
+| CORE-04 | Phase 3 | Complete |
 | GUI-01 | Phase 4 | Pending |
 | GUI-02 | Phase 4 | Pending |
 | GUI-03 | Phase 4 | Pending |
