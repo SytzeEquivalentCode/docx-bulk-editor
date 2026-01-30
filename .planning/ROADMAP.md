@@ -44,7 +44,7 @@ Plans:
   3. Table Formatter applies formatting rules across various table structures
   4. Style Enforcer standardizes styles according to configuration
   5. Validator reports all validation rule violations accurately
-**Plans**: 5 plans
+**Plans**: 7 plans
 
 Plans:
 - [ ] 02-01-PLAN.md — Extend conftest.py with fixture helpers (docx_with_table, docx_with_metadata)
@@ -52,6 +52,8 @@ Plans:
 - [ ] 02-03-PLAN.md — Consolidate and convert search_replace tests to programmatic docs
 - [ ] 02-04-PLAN.md — Convert metadata tests to programmatic document generation
 - [ ] 02-05-PLAN.md — Verify all processor tests pass (checkpoint)
+- [ ] 02-06-PLAN.md — Validate style_enforcer processor tests (PROC-05)
+- [ ] 02-07-PLAN.md — Validate validator processor tests (PROC-06)
 
 ### Phase 3: Core Infrastructure Tests
 **Goal**: Core infrastructure components validated for configuration, backup, logging, and database operations
@@ -102,7 +104,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Test Infrastructure | 2/2 | Complete | 2026-01-30 |
-| 2. Processor Tests | 0/5 | Planned | - |
+| 2. Processor Tests | 0/7 | Planned | - |
 | 3. Core Infrastructure Tests | 0/TBD | Not started | - |
 | 4. GUI Tests | 0/TBD | Not started | - |
 | 5. Integration & E2E Tests | 0/TBD | Not started | - |
