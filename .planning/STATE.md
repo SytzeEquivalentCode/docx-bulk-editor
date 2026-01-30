@@ -10,28 +10,28 @@ See: .planning/PROJECT.md (updated 2026-01-30)
 ## Current Position
 
 Phase: 1 of 5 (Test Infrastructure)
-Plan: 1 of TBD in current phase
+Plan: 2 of TBD in current phase
 Status: In progress
-Last activity: 2026-01-30 — Completed 01-01-PLAN.md (fixture validation tests)
+Last activity: 2026-01-30 — Completed 01-02-PLAN.md (pytest pythonpath configuration)
 
-Progress: [█░░░░░░░░░] ~5%
+Progress: [█░░░░░░░░░] ~10%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 1
-- Average duration: 4 min
-- Total execution time: 0.07 hours
+- Total plans completed: 2
+- Average duration: 3.5 min
+- Total execution time: 0.12 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 01-test-infrastructure | 1 | 4min | 4min |
+| 01-test-infrastructure | 2 | 7min | 3.5min |
 
 **Recent Trend:**
-- Last 5 plans: 01-01 (4min)
-- Trend: Starting
+- Last 5 plans: 01-01 (4min), 01-02 (3min)
+- Trend: Accelerating
 
 *Updated after each plan completion*
 
@@ -45,6 +45,8 @@ Recent decisions affecting current work:
 - Phase 0: Fix existing tests before expanding — existing tests represent prior knowledge; don't discard
 - Phase 0: Generate test docs programmatically — reproducible, version-controlled, no binary files in repo
 - Phase 0: Behavior coverage over line coverage — tests document "what should happen", not just "code runs"
+- 01-02: Use pytest.ini pythonpath over editable install — simplest solution, no package changes needed
+- 01-02: Document collection errors vs test failures distinction — clarifies infrastructure vs implementation work
 
 ### Pending Todos
 
@@ -75,6 +77,6 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-01-30
-Stopped at: Completed 01-01-PLAN.md and 01-01-SUMMARY.md
+Stopped at: Completed 01-02-PLAN.md and 01-02-SUMMARY.md
 Resume file: None
-Next action: Plan and execute 01-02 (or proceed to Phase 2 if Phase 1 complete)
+Next action: Phase 01 test infrastructure complete - ready for Phase 2
