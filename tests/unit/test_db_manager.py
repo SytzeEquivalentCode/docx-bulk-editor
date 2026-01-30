@@ -359,6 +359,71 @@ class TestConnectionManager:
             assert "key" in row.keys()
             assert "value" in row.keys()
 
+    def test_unique_constraint_violation_message(self, tmp_path):
+        """Test IntegrityError from unique constraint violation includes helpful info.
+
+        The settings table has a UNIQUE constraint on the 'key' column.
+        When violated, the error message should include enough information
+        to help diagnose the issue.
+        """
+        db_path = tmp_path / "data" / "test.db"
+        db = DatabaseManager(db_path)
+
+        with db.get_connection() as conn:
+            cursor = conn.cursor()
+            # Insert first row
+            cursor.execute("""
+                INSERT INTO settings (key, value, updated_at)
+                VALUES (?, ?, ?)
+            """, ("duplicate_key", "value1", datetime.now().isoformat()))
+            conn.commit()
+
+        # Try to insert duplicate key
+        with pytest.raises(sqlite3.IntegrityError) as exc_info:
+            with db.get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("""
+                    INSERT INTO settings (key, value, updated_at)
+                    VALUES (?, ?, ?)
+                """, ("duplicate_key", "value2", datetime.now().isoformat()))
+
+        error_msg = str(exc_info.value).lower()
+        # Error message should mention constraint violation
+        assert "unique" in error_msg or "constraint" in error_msg, (
+            f"Error message should mention constraint: {exc_info.value}"
+        )
+
+    def test_foreign_key_violation_message(self, tmp_path):
+        """Test IntegrityError from foreign key violation includes table info.
+
+        The job_results table has a foreign key to jobs table.
+        Inserting a job_result with invalid job_id should fail with
+        an informative error message.
+        """
+        db_path = tmp_path / "data" / "test.db"
+        db = DatabaseManager(db_path)
+
+        # Try to insert job_result with non-existent job_id
+        with pytest.raises(sqlite3.IntegrityError) as exc_info:
+            with db.get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("""
+                    INSERT INTO job_results (id, job_id, file_path, status, created_at)
+                    VALUES (?, ?, ?, ?, ?)
+                """, (
+                    db.generate_id(),
+                    "nonexistent_job_id",  # Invalid foreign key
+                    "test.docx",
+                    "success",
+                    datetime.now().isoformat()
+                ))
+
+        error_msg = str(exc_info.value).lower()
+        # Error message should mention foreign key constraint
+        assert "foreign" in error_msg or "constraint" in error_msg, (
+            f"Error message should mention constraint: {exc_info.value}"
+        )
+
 
 @pytest.mark.unit
 class TestIDGeneration:
