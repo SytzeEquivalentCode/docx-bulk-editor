@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-01-30)
 ## Current Position
 
 Phase: 4 of 5 (GUI Tests)
-Plan: 3 of 4 in current phase
+Plan: 1 of 4 in current phase (COMPLETE)
 Status: In progress
-Last activity: 2026-02-01 - Completed 04-03-PLAN.md (HistoryWindow tests)
+Last activity: 2026-02-01 - Completed 04-01-PLAN.md (MainWindow extended tests)
 
-Progress: [████████░░] ~90%
+Progress: [████████░░] ~82%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 16
-- Average duration: 5.0 min
-- Total execution time: 1.3 hours
+- Total plans completed: 14
+- Average duration: 5.1 min
+- Total execution time: 1.2 hours
 
 **By Phase:**
 
@@ -30,11 +30,11 @@ Progress: [████████░░] ~90%
 | 01-test-infrastructure | 2 | 7min | 3.5min |
 | 02-processor-tests | 7 | 45min | 6.4min |
 | 03-core-infrastructure-tests | 4 | 13min | 3.3min |
-| 04-gui-tests | 3 | 20min | 6.7min |
+| 04-gui-tests | 1 | 19min | 19min |
 
 **Recent Trend:**
-- Last 5 plans: 04-03 (8min), 04-02 (6min), 04-01 (6min), 03-04 (3min), 03-03 (3min)
-- Trend: Phase 4 GUI tests executing at moderate pace (comprehensive test creation)
+- Last 5 plans: 04-01 (19min), 03-04 (3min), 03-03 (3min), 03-02 (5min), 03-01 (2min)
+- Trend: Phase 4 GUI tests requiring more time (comprehensive dialog mocking and validation)
 
 *Updated after each plan completion*
 
@@ -56,11 +56,9 @@ Recent decisions affecting current work:
 - 03-02: Test error message content, not just exception type
 - 03-03: Apply @pytest.mark.unit at class level (not method level)
 - 03-04: backup.py coverage (74.36%) accepted - behavioral coverage is comprehensive
-- 04-02: Use monkeypatch for time mocking in GUI tests - deterministic, no sleep needed
-- 04-02: Use qtbot.waitSignal for signal testing - cleaner than manual signal spies
-- 04-03: Helper functions for test data creation - create_test_job() pattern for database fixtures
-- 04-03: Use qtbot.waitUntil for filter tests - handles async signal/slot processing
-- 04-03: Mock QFileDialog and QMessageBox for export tests - enables headless CI/CD testing
+- 04-01: Use monkeypatch.setattr() for mocking QFileDialog and QMessageBox to avoid blocking tests
+- 04-01: Organize new tests into classes (TestMainWindowFileSelection, etc.) while keeping original tests as module-level functions
+- 04-01: Test operation panel switching by checking widget attributes (hasattr) rather than inspecting layout
 
 ### Pending Todos
 
@@ -71,22 +69,22 @@ None.
 None.
 
 **Phase 4 Progress (2026-02-01):**
-- Plan 01 complete: MainWindow basic tests (6 tests)
-- Plan 02 complete: ProgressDialog comprehensive tests (20 tests, 99% coverage)
-- Plan 03 complete: HistoryWindow comprehensive tests (19 tests, 84% coverage)
-- Plan 04 pending: SettingsDialog tests
+- Plan 01 complete: MainWindow extended tests (22 tests total, +13 new)
+- Plan 02 pending: ProgressDialog tests
+- Plan 03 pending: HistoryWindow tests
+- Plan 04 pending: Phase verification
 
 **GUI Test summary:**
 | Module | Tests | Coverage | Status |
 |--------|-------|----------|--------|
-| test_main_window.py | 6 | partial | Pass |
-| test_progress_dialog.py | 20 | 99% | Pass |
-| test_history_window.py | 19 | 84% | Pass |
-| **Total GUI Tests** | **45** | **high** | **Pass** |
+| test_main_window.py | 22 | ~69% | Pass |
+| test_progress_dialog.py | 0 | 0% | Not started |
+| test_history_window.py | 0 | 0% | Not started |
+| **Total GUI Tests** | **22** | **partial** | **Pass** |
 
 ## Session Continuity
 
-Last session: 2026-02-01T09:39:16Z
-Stopped at: Completed 04-03-PLAN.md (HistoryWindow tests)
+Last session: 2026-02-01T09:49:00Z
+Stopped at: Completed 04-01-PLAN.md (MainWindow extended tests)
 Resume file: None
-Next action: Continue Phase 4 with plan 04-04 (SettingsDialog tests)
+Next action: Continue Phase 4 with plan 04-02 (ProgressDialog tests)
