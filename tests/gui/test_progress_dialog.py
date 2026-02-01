@@ -102,3 +102,96 @@ class TestProgressDialogUpdates:
 
         log_content = dialog.log_text.toPlainText()
         assert "test.docx" in log_content
+
+
+@pytest.mark.gui
+class TestProgressDialogTimeFormatting:
+    """Test ProgressDialog time formatting and calculation."""
+
+    def test_format_time_formats_seconds(self, qtbot):
+        """Test time formatting for seconds only."""
+        dialog = ProgressDialog()
+        qtbot.addWidget(dialog)
+
+        formatted = dialog._format_time(65)
+
+        assert formatted == "00:01:05"
+
+    def test_format_time_formats_hours(self, qtbot):
+        """Test time formatting with hours."""
+        dialog = ProgressDialog()
+        qtbot.addWidget(dialog)
+
+        formatted = dialog._format_time(3665)
+
+        assert formatted == "01:01:05"
+
+    def test_format_time_handles_zero(self, qtbot):
+        """Test time formatting for zero seconds."""
+        dialog = ProgressDialog()
+        qtbot.addWidget(dialog)
+
+        formatted = dialog._format_time(0)
+
+        assert formatted == "00:00:00"
+
+    def test_format_time_handles_negative(self, qtbot):
+        """Test time formatting handles negative values safely."""
+        dialog = ProgressDialog()
+        qtbot.addWidget(dialog)
+
+        formatted = dialog._format_time(-10)
+
+        # Should clamp to zero (edge case protection)
+        assert formatted == "00:00:00"
+
+    def test_elapsed_time_updates_on_progress(self, qtbot, monkeypatch):
+        """Test elapsed time label updates correctly."""
+        dialog = ProgressDialog()
+        qtbot.addWidget(dialog)
+
+        # Mock time to show 65 seconds elapsed
+        fake_start = 1000.0
+        dialog.start_time = fake_start
+        monkeypatch.setattr(time, 'time', lambda: fake_start + 65)
+
+        dialog.update_progress(50, "test.docx", 5, 0)
+
+        assert "00:01:05" in dialog.elapsed_label.text()
+
+
+@pytest.mark.gui
+class TestProgressDialogCancellation:
+    """Test ProgressDialog cancellation mechanism."""
+
+    def test_cancel_button_emits_signal(self, qtbot):
+        """Test cancel button emits cancelled signal."""
+        dialog = ProgressDialog()
+        qtbot.addWidget(dialog)
+        dialog.show()
+
+        with qtbot.waitSignal(dialog.cancelled, timeout=1000) as blocker:
+            QTest.mouseClick(dialog.cancel_button, Qt.LeftButton)
+
+        assert blocker.signal_triggered
+
+    def test_cancel_button_disables_after_click(self, qtbot):
+        """Test cancel button becomes disabled after click."""
+        dialog = ProgressDialog()
+        qtbot.addWidget(dialog)
+        dialog.show()
+
+        QTest.mouseClick(dialog.cancel_button, Qt.LeftButton)
+
+        assert dialog.cancel_button.isEnabled() is False
+        assert dialog.cancel_button.text() == 'Cancelling...'
+
+    def test_cancel_updates_operation_label(self, qtbot):
+        """Test cancel updates operation label to show cancelling."""
+        dialog = ProgressDialog()
+        qtbot.addWidget(dialog)
+        dialog.show()
+
+        QTest.mouseClick(dialog.cancel_button, Qt.LeftButton)
+
+        assert "Cancelling..." in dialog.operation_label.text()
