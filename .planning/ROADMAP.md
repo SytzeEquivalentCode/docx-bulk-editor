@@ -97,10 +97,13 @@ Plans:
   1. Full job workflow executes from file selection through processing to completion without errors
   2. Processor failures are handled gracefully with error reporting and partial completion
   3. Backups are created before processing and can restore files after failures
-**Plans**: TBD
+**Plans**: 4 plans
 
 Plans:
-- [ ] TBD (after planning)
+- [ ] 05-01-PLAN.md — Create E2E workflow tests for all 5 processors
+- [ ] 05-02-PLAN.md — Create error recovery and cancellation tests
+- [ ] 05-03-PLAN.md — Create backup integration tests
+- [ ] 05-04-PLAN.md — Verify Phase 5 success criteria (checkpoint)
 
 ## Progress
 
@@ -113,4 +116,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 | 2. Processor Tests | 7/7 | Complete | 2026-01-30 |
 | 3. Core Infrastructure Tests | 4/4 | Complete | 2026-01-30 |
 | 4. GUI Tests | 4/4 | Complete | 2026-02-01 |
-| 5. Integration & E2E Tests | 0/TBD | Not started | - |
+| 5. Integration & E2E Tests | 0/4 | Planned | - |
