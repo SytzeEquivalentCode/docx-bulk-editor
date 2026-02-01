@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-01-30)
 ## Current Position
 
 Phase: 4 of 5 (GUI Tests)
-Plan: 2 of 3 in current phase
+Plan: 3 of 4 in current phase
 Status: In progress
-Last activity: 2026-02-01 - Completed 04-02-PLAN.md (ProgressDialog tests)
+Last activity: 2026-02-01 - Completed 04-03-PLAN.md (HistoryWindow tests)
 
-Progress: [████████░░] ~87%
+Progress: [████████░░] ~90%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 15
-- Average duration: 4.9 min
-- Total execution time: 1.2 hours
+- Total plans completed: 16
+- Average duration: 5.0 min
+- Total execution time: 1.3 hours
 
 **By Phase:**
 
@@ -30,10 +30,10 @@ Progress: [████████░░] ~87%
 | 01-test-infrastructure | 2 | 7min | 3.5min |
 | 02-processor-tests | 7 | 45min | 6.4min |
 | 03-core-infrastructure-tests | 4 | 13min | 3.3min |
-| 04-gui-tests | 2 | 12min | 6.0min |
+| 04-gui-tests | 3 | 20min | 6.7min |
 
 **Recent Trend:**
-- Last 5 plans: 04-02 (6min), 04-01 (6min), 03-04 (3min), 03-03 (3min), 03-02 (5min)
+- Last 5 plans: 04-03 (8min), 04-02 (6min), 04-01 (6min), 03-04 (3min), 03-03 (3min)
 - Trend: Phase 4 GUI tests executing at moderate pace (comprehensive test creation)
 
 *Updated after each plan completion*
@@ -58,6 +58,9 @@ Recent decisions affecting current work:
 - 03-04: backup.py coverage (74.36%) accepted - behavioral coverage is comprehensive
 - 04-02: Use monkeypatch for time mocking in GUI tests - deterministic, no sleep needed
 - 04-02: Use qtbot.waitSignal for signal testing - cleaner than manual signal spies
+- 04-03: Helper functions for test data creation - create_test_job() pattern for database fixtures
+- 04-03: Use qtbot.waitUntil for filter tests - handles async signal/slot processing
+- 04-03: Mock QFileDialog and QMessageBox for export tests - enables headless CI/CD testing
 
 ### Pending Todos
 
@@ -70,19 +73,20 @@ None.
 **Phase 4 Progress (2026-02-01):**
 - Plan 01 complete: MainWindow basic tests (6 tests)
 - Plan 02 complete: ProgressDialog comprehensive tests (20 tests, 99% coverage)
-- Plan 03 pending: SettingsDialog tests
+- Plan 03 complete: HistoryWindow comprehensive tests (19 tests, 84% coverage)
+- Plan 04 pending: SettingsDialog tests
 
 **GUI Test summary:**
 | Module | Tests | Coverage | Status |
 |--------|-------|----------|--------|
 | test_main_window.py | 6 | partial | Pass |
 | test_progress_dialog.py | 20 | 99% | Pass |
-| test_history_window.py | TBD | - | Pending |
-| **Total GUI Tests** | **26** | **high** | **Pass** |
+| test_history_window.py | 19 | 84% | Pass |
+| **Total GUI Tests** | **45** | **high** | **Pass** |
 
 ## Session Continuity
 
-Last session: 2026-02-01T14:10:41Z
-Stopped at: Completed 04-02-PLAN.md (ProgressDialog tests)
+Last session: 2026-02-01T09:39:16Z
+Stopped at: Completed 04-03-PLAN.md (HistoryWindow tests)
 Resume file: None
-Next action: Continue Phase 4 with plan 04-03 (SettingsDialog tests)
+Next action: Continue Phase 4 with plan 04-04 (SettingsDialog tests)
