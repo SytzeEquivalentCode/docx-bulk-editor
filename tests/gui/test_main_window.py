@@ -472,3 +472,156 @@ class TestMainWindowOperationSwitching:
         assert window.operation_buttons['search_replace'].isChecked() is False
         assert window.operation_buttons['metadata'].isChecked() is False
         assert window.operation_buttons['validate'].isChecked() is True
+
+
+# ============================================================================
+# TestMainWindowJobValidation - GUI-02 Job Validation Tests
+# ============================================================================
+
+@pytest.mark.gui
+class TestMainWindowJobValidation:
+    """Tests for job validation logic before starting processing."""
+
+    def test_start_without_search_term_shows_warning(self, qtbot, test_config, test_db, docx_factory, monkeypatch):
+        """Test that starting search/replace without search term shows warning."""
+        window = MainWindow(test_config, test_db)
+        qtbot.addWidget(window)
+
+        # Add file but leave search_input empty
+        test_file = docx_factory(content="Test", filename="test.docx")
+        window.selected_files = [test_file]
+        window._update_ui_state()
+
+        # Ensure search_replace operation selected (default)
+        assert window.current_operation == 'search_replace'
+        # Search input is empty
+        window.search_input.setText("")
+
+        # Mock QMessageBox.warning to capture calls
+        warning_calls = []
+        def mock_warning(parent, title, message):
+            warning_calls.append((title, message))
+            return QMessageBox.Ok
+
+        monkeypatch.setattr(QMessageBox, 'warning', mock_warning)
+
+        # Try to start
+        window._on_start_clicked()
+
+        # Verify warning shown
+        assert len(warning_calls) == 1
+        title, message = warning_calls[0]
+        assert "Missing Search Term" in title
+        assert "search term" in message.lower()
+
+    def test_start_without_metadata_operations_shows_warning(self, qtbot, test_config, test_db, docx_factory, monkeypatch):
+        """Test that starting metadata without any operations shows warning."""
+        window = MainWindow(test_config, test_db)
+        qtbot.addWidget(window)
+
+        # Add file
+        test_file = docx_factory(content="Test", filename="test.docx")
+        window.selected_files = [test_file]
+        window._update_ui_state()
+
+        # Switch to metadata operation
+        QTest.mouseClick(window.operation_buttons['metadata'], Qt.LeftButton)
+        assert window.current_operation == 'metadata'
+
+        # Don't check any clear checkboxes or enter any set values
+        # (verify all unchecked)
+        for checkbox in window.metadata_clear_checks.values():
+            assert checkbox.isChecked() is False
+
+        for input_field in window.metadata_set_inputs.values():
+            assert input_field.text().strip() == ""
+
+        # Mock QMessageBox.warning
+        warning_calls = []
+        def mock_warning(parent, title, message):
+            warning_calls.append((title, message))
+            return QMessageBox.Ok
+
+        monkeypatch.setattr(QMessageBox, 'warning', mock_warning)
+
+        # Try to start
+        window._on_start_clicked()
+
+        # Verify warning shown
+        assert len(warning_calls) == 1
+        title, message = warning_calls[0]
+        assert "No Metadata Operations" in title
+        assert "at least one" in message.lower()
+
+    def test_start_with_valid_search_term_creates_job(self, qtbot, test_config, test_db, docx_factory, monkeypatch):
+        """Test that valid search/replace configuration creates job in database."""
+        window = MainWindow(test_config, test_db)
+        qtbot.addWidget(window)
+
+        # Add file and configure search/replace
+        test_file = docx_factory(content="Test content", filename="test.docx")
+        window.selected_files = [test_file]
+        window._update_ui_state()
+
+        window.search_input.setText("Test")
+        window.replace_input.setText("Sample")
+
+        # Mock ProgressDialog and worker to avoid actual processing
+        mock_progress = MagicMock()
+        monkeypatch.setattr('src.ui.main_window.ProgressDialog', lambda parent: mock_progress)
+
+        # Click start
+        window._on_start_clicked()
+
+        # Verify job created in database
+        with test_db.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT COUNT(*) FROM jobs WHERE operation = 'search_replace'")
+            job_count = cursor.fetchone()[0]
+
+        assert job_count == 1
+
+        # Verify worker created
+        assert window.worker is not None
+
+        # Cleanup
+        if window.worker and window.worker.isRunning():
+            window.worker.cancel()
+            window.worker.wait(5000)
+
+    def test_close_window_stops_running_worker(self, qtbot, test_config, test_db, docx_factory, monkeypatch):
+        """Test that closing window cancels running worker thread."""
+        window = MainWindow(test_config, test_db)
+        qtbot.addWidget(window)
+
+        # Add file and configure
+        test_file = docx_factory(content="Test", filename="test.docx")
+        window.selected_files = [test_file]
+        window._update_ui_state()
+        window.search_input.setText("Test")
+
+        # Mock ProgressDialog
+        mock_progress = MagicMock()
+        monkeypatch.setattr('src.ui.main_window.ProgressDialog', lambda parent: mock_progress)
+
+        # Start job
+        window._on_start_clicked()
+
+        # Verify worker running
+        assert window.worker is not None
+        worker = window.worker
+
+        # Spy on worker.cancel to verify it's called
+        cancel_spy = Mock()
+        original_cancel = worker.cancel
+        worker.cancel = lambda: (cancel_spy(), original_cancel())
+
+        # Close window
+        window.close()
+
+        # Verify cancel was called
+        cancel_spy.assert_called_once()
+
+        # Wait for worker to finish
+        if worker.isRunning():
+            worker.wait(5000)
