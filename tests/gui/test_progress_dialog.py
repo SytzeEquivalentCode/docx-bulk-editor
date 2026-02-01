@@ -195,3 +195,59 @@ class TestProgressDialogCancellation:
         QTest.mouseClick(dialog.cancel_button, Qt.LeftButton)
 
         assert "Cancelling..." in dialog.operation_label.text()
+
+
+@pytest.mark.gui
+class TestProgressDialogMetrics:
+    """Test ProgressDialog ETA and speed calculation."""
+
+    def test_remaining_time_calculated_from_progress(self, qtbot, monkeypatch):
+        """Test ETA calculation based on progress."""
+        dialog = ProgressDialog()
+        qtbot.addWidget(dialog)
+
+        # Simulate 50% done after 60 seconds
+        fake_start = 1000.0
+        dialog.start_time = fake_start
+        monkeypatch.setattr(time, 'time', lambda: fake_start + 60)
+
+        dialog.update_progress(50, "test.docx", 5, 0)
+
+        # At 50%, ~60s remaining
+        # The label format includes "Remaining: HH:MM:SS"
+        assert "00:01:00" in dialog.remaining_label.text() or \
+               "00:00:59" in dialog.remaining_label.text()  # Allow 1s variance
+
+    def test_speed_calculated_correctly(self, qtbot, monkeypatch):
+        """Test processing speed calculation."""
+        dialog = ProgressDialog()
+        qtbot.addWidget(dialog)
+
+        fake_start = 1000.0
+        dialog.start_time = fake_start
+        monkeypatch.setattr(time, 'time', lambda: fake_start + 60)
+
+        # 10 files processed in 60 seconds = 10 files/min
+        dialog.update_progress(100, "test.docx", 10, 0)
+
+        assert "10.0 files/min" in dialog.speed_label.text()
+
+    def test_speed_shows_placeholder_at_zero_percent(self, qtbot):
+        """Test speed shows placeholder when no progress."""
+        dialog = ProgressDialog()
+        qtbot.addWidget(dialog)
+
+        # At 0%, speed should show placeholder
+        dialog.update_progress(0, "test.docx", 0, 0)
+
+        assert "-- files/min" in dialog.speed_label.text()
+
+    def test_remaining_shows_placeholder_at_zero_percent(self, qtbot):
+        """Test remaining time shows placeholder when no progress."""
+        dialog = ProgressDialog()
+        qtbot.addWidget(dialog)
+
+        # At 0%, remaining should show placeholder
+        dialog.update_progress(0, "test.docx", 0, 0)
+
+        assert "--:--:--" in dialog.remaining_label.text()
