@@ -81,10 +81,13 @@ Plans:
   2. MainWindow starts and cancels jobs correctly with worker thread integration
   3. ProgressDialog updates progress, displays elapsed time, and handles cancellation
   4. HistoryWindow lists jobs, filters results, and displays detailed result views
-**Plans**: TBD
+**Plans**: 4 plans
 
 Plans:
-- [ ] TBD (after planning)
+- [ ] 04-01-PLAN.md — Extend MainWindow tests for GUI-01/GUI-02 coverage
+- [ ] 04-02-PLAN.md — Create ProgressDialog tests for GUI-03 coverage
+- [ ] 04-03-PLAN.md — Create HistoryWindow tests for GUI-04 coverage
+- [ ] 04-04-PLAN.md — Verify Phase 4 success criteria (checkpoint)
 
 ### Phase 5: Integration & E2E Tests
 **Goal**: Full workflows validated with cross-component integration tests
@@ -109,5 +112,5 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 | 1. Test Infrastructure | 2/2 | Complete | 2026-01-30 |
 | 2. Processor Tests | 7/7 | Complete | 2026-01-30 |
 | 3. Core Infrastructure Tests | 4/4 | Complete | 2026-01-30 |
-| 4. GUI Tests | 0/TBD | Not started | - |
+| 4. GUI Tests | 0/4 | Planned | - |
 | 5. Integration & E2E Tests | 0/TBD | Not started | - |
