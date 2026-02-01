@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-01-30)
 
 **Core value:** Every user-facing feature has a test that documents and validates its correct behavior
-**Current focus:** Phase 3 - Core Infrastructure Tests (COMPLETE)
+**Current focus:** Phase 4 - GUI Tests (COMPLETE)
 
 ## Current Position
 
-Phase: 4 of 5 (GUI Tests)
-Plan: 1 of 4 in current phase (COMPLETE)
-Status: In progress
-Last activity: 2026-02-01 - Completed 04-01-PLAN.md (MainWindow extended tests)
+Phase: 4 of 5 (GUI Tests) - COMPLETE
+Plan: 4 of 4 in current phase (all complete)
+Status: Phase complete, ready for Phase 5
+Last activity: 2026-02-01 - Completed 04-04-PLAN.md (phase verification)
 
-Progress: [████████░░] ~82%
+Progress: [█████████░] ~90%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 14
-- Average duration: 5.1 min
-- Total execution time: 1.2 hours
+- Total plans completed: 17
+- Average duration: 5.5 min
+- Total execution time: 1.5 hours
 
 **By Phase:**
 
@@ -30,11 +30,11 @@ Progress: [████████░░] ~82%
 | 01-test-infrastructure | 2 | 7min | 3.5min |
 | 02-processor-tests | 7 | 45min | 6.4min |
 | 03-core-infrastructure-tests | 4 | 13min | 3.3min |
-| 04-gui-tests | 1 | 19min | 19min |
+| 04-gui-tests | 4 | 38min | 9.5min |
 
 **Recent Trend:**
-- Last 5 plans: 04-01 (19min), 03-04 (3min), 03-03 (3min), 03-02 (5min), 03-01 (2min)
-- Trend: Phase 4 GUI tests requiring more time (comprehensive dialog mocking and validation)
+- Last 5 plans: 04-04 (5min), 04-03 (8min), 04-02 (6min), 04-01 (19min), 03-04 (3min)
+- Trend: Phase 4 GUI tests completed with good velocity
 
 *Updated after each plan completion*
 
@@ -49,16 +49,12 @@ Recent decisions affecting current work:
 - Phase 0: Generate test docs programmatically - reproducible, version-controlled, no binary files in repo
 - Phase 0: Behavior coverage over line coverage - tests document "what should happen", not just "code runs"
 - 01-02: Use pytest.ini pythonpath over editable install - simplest solution, no package changes needed
-- 01-02: Document collection errors vs test failures distinction - clarifies infrastructure vs implementation work
 - 02-04: Organize tests into classes with markers - consistent structure across test files
-- 02-02: Test XML properties directly using docx.oxml.ns.qn for precise validation
-- 03-01: Test expectation fixed to match implementation (schema is source of truth)
-- 03-02: Test error message content, not just exception type
 - 03-03: Apply @pytest.mark.unit at class level (not method level)
-- 03-04: backup.py coverage (74.36%) accepted - behavioral coverage is comprehensive
-- 04-01: Use monkeypatch.setattr() for mocking QFileDialog and QMessageBox to avoid blocking tests
-- 04-01: Organize new tests into classes (TestMainWindowFileSelection, etc.) while keeping original tests as module-level functions
-- 04-01: Test operation panel switching by checking widget attributes (hasattr) rather than inspecting layout
+- 04-01: Use monkeypatch.setattr() for mocking QFileDialog and QMessageBox
+- 04-02: Mock time.time() for deterministic elapsed time tests
+- 04-03: Use qtbot.waitUntil() for async filter updates
+- 04-04: Accept minor time.sleep() usage for timestamp spacing (non-critical)
 
 ### Pending Todos
 
@@ -66,25 +62,25 @@ None.
 
 ### Blockers/Concerns
 
-None.
+None - Phase 4 complete.
 
-**Phase 4 Progress (2026-02-01):**
-- Plan 01 complete: MainWindow extended tests (22 tests total, +13 new)
-- Plan 02 pending: ProgressDialog tests
-- Plan 03 pending: HistoryWindow tests
-- Plan 04 pending: Phase verification
+**Phase 4 Summary (2026-02-01):**
+- Plan 01 complete: MainWindow extended tests (22 tests, 69% coverage)
+- Plan 02 complete: ProgressDialog tests (20 tests, 99% coverage)
+- Plan 03 complete: HistoryWindow tests (19 tests, 84% coverage)
+- Plan 04 complete: Phase verification with human approval
 
-**GUI Test summary:**
+**Test summary:**
 | Module | Tests | Coverage | Status |
 |--------|-------|----------|--------|
-| test_main_window.py | 22 | ~69% | Pass |
-| test_progress_dialog.py | 0 | 0% | Not started |
-| test_history_window.py | 0 | 0% | Not started |
-| **Total GUI Tests** | **22** | **partial** | **Pass** |
+| test_main_window.py | 22 | 83% | Pass |
+| test_progress_dialog.py | 20 | 99% | Pass |
+| test_history_window.py | 19 | 84% | Pass |
+| **Total GUI Tests** | **61** | **~89%** | **Pass** |
 
 ## Session Continuity
 
-Last session: 2026-02-01T09:49:00Z
-Stopped at: Completed 04-01-PLAN.md (MainWindow extended tests)
+Last session: 2026-02-01T10:55:00Z
+Stopped at: Completed 04-04-PLAN.md (phase verification)
 Resume file: None
-Next action: Continue Phase 4 with plan 04-02 (ProgressDialog tests)
+Next action: Begin Phase 5 planning (Integration & E2E Tests)

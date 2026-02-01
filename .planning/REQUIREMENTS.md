@@ -31,10 +31,10 @@ Requirements for complete test coverage. Each maps to roadmap phases.
 
 ### GUI Tests
 
-- [ ] **GUI-01**: MainWindow — test file selection, drag-drop, operation switching
-- [ ] **GUI-02**: MainWindow — test start/cancel job flow with worker thread
-- [ ] **GUI-03**: ProgressDialog — test progress updates, elapsed time, cancellation
-- [ ] **GUI-04**: HistoryWindow — test job listing, filtering, result viewing
+- [x] **GUI-01**: MainWindow — test file selection, drag-drop, operation switching
+- [x] **GUI-02**: MainWindow — test start/cancel job flow with worker thread
+- [x] **GUI-03**: ProgressDialog — test progress updates, elapsed time, cancellation
+- [x] **GUI-04**: HistoryWindow — test job listing, filtering, result viewing
 
 ### Integration/E2E Tests
 
@@ -82,10 +82,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CORE-02 | Phase 3 | Complete |
 | CORE-03 | Phase 3 | Complete |
 | CORE-04 | Phase 3 | Complete |
-| GUI-01 | Phase 4 | Pending |
-| GUI-02 | Phase 4 | Pending |
-| GUI-03 | Phase 4 | Pending |
-| GUI-04 | Phase 4 | Pending |
+| GUI-01 | Phase 4 | Complete |
+| GUI-02 | Phase 4 | Complete |
+| GUI-03 | Phase 4 | Complete |
+| GUI-04 | Phase 4 | Complete |
 | E2E-01 | Phase 5 | Pending |
 | E2E-02 | Phase 5 | Pending |
 | E2E-03 | Phase 5 | Pending |
@@ -97,4 +97,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-01-30*
-*Last updated: 2026-01-30 after initial definition*
+*Last updated: 2026-02-01 after Phase 4 completion*

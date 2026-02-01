@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Test Infrastructure** - Validate existing test environment and document infrastructure readiness
 - [x] **Phase 2: Processor Tests** - Validate all five document processors with comprehensive behavior coverage
 - [x] **Phase 3: Core Infrastructure Tests** - Test configuration, backup, logging, and database layers
-- [ ] **Phase 4: GUI Tests** - Validate UI components with pytest-qt for user interactions
+- [x] **Phase 4: GUI Tests** - Validate UI components with pytest-qt for user interactions
 - [ ] **Phase 5: Integration & E2E Tests** - Test full workflows and cross-component interactions
 
 ## Phase Details
@@ -84,10 +84,10 @@ Plans:
 **Plans**: 4 plans
 
 Plans:
-- [ ] 04-01-PLAN.md — Extend MainWindow tests for GUI-01/GUI-02 coverage
-- [ ] 04-02-PLAN.md — Create ProgressDialog tests for GUI-03 coverage
-- [ ] 04-03-PLAN.md — Create HistoryWindow tests for GUI-04 coverage
-- [ ] 04-04-PLAN.md — Verify Phase 4 success criteria (checkpoint)
+- [x] 04-01-PLAN.md — Extend MainWindow tests for GUI-01/GUI-02 coverage
+- [x] 04-02-PLAN.md — Create ProgressDialog tests for GUI-03 coverage
+- [x] 04-03-PLAN.md — Create HistoryWindow tests for GUI-04 coverage
+- [x] 04-04-PLAN.md — Verify Phase 4 success criteria (checkpoint)
 
 ### Phase 5: Integration & E2E Tests
 **Goal**: Full workflows validated with cross-component integration tests
@@ -112,5 +112,5 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 | 1. Test Infrastructure | 2/2 | Complete | 2026-01-30 |
 | 2. Processor Tests | 7/7 | Complete | 2026-01-30 |
 | 3. Core Infrastructure Tests | 4/4 | Complete | 2026-01-30 |
-| 4. GUI Tests | 0/4 | Planned | - |
+| 4. GUI Tests | 4/4 | Complete | 2026-02-01 |
 | 5. Integration & E2E Tests | 0/TBD | Not started | - |
