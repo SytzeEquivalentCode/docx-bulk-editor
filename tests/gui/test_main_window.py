@@ -15,7 +15,7 @@ import pytest
 from pathlib import Path
 from PySide6.QtCore import Qt
 from PySide6.QtTest import QTest
-from PySide6.QtWidgets import QMessageBox
+from PySide6.QtWidgets import QMessageBox, QFileDialog
 from unittest.mock import Mock, patch, MagicMock
 
 from src.ui.main_window import MainWindow
@@ -263,3 +263,212 @@ def test_operation_selector_changes_config_panel(qtbot, test_config, test_db):
     assert window.current_operation == 'metadata'
     # Old widgets should be cleaned up
     assert not hasattr(window, 'search_input')
+
+
+# ============================================================================
+# TestMainWindowFileSelection - GUI-01 File Selection Tests
+# ============================================================================
+
+@pytest.mark.gui
+class TestMainWindowFileSelection:
+    """Tests for file selection dialogs, folder scanning, and file list management."""
+
+    def test_add_files_via_dialog(self, qtbot, test_config, test_db, docx_factory, monkeypatch):
+        """Test adding files via QFileDialog.getOpenFileNames."""
+        window = MainWindow(test_config, test_db)
+        qtbot.addWidget(window)
+
+        # Create test files
+        test_files = [
+            docx_factory(content="Test 1", filename="test1.docx"),
+            docx_factory(content="Test 2", filename="test2.docx")
+        ]
+
+        # Mock file dialog to return test files (non-blocking)
+        monkeypatch.setattr(
+            QFileDialog, 'getOpenFileNames',
+            lambda *args, **kwargs: ([str(f) for f in test_files], '')
+        )
+
+        # Trigger file dialog
+        window._on_add_files()
+
+        # Verify files added
+        assert len(window.selected_files) == 2
+        assert window.file_list.count() == 2
+        assert window.start_button.isEnabled() is True
+
+    def test_add_folder_via_dialog(self, qtbot, test_config, test_db, docx_factory, tmp_path, monkeypatch):
+        """Test adding folder via QFileDialog.getExistingDirectory with recursive scan."""
+        window = MainWindow(test_config, test_db)
+        qtbot.addWidget(window)
+
+        # Create temp folder with .docx files
+        test_folder = tmp_path / "test_docs"
+        test_folder.mkdir()
+        subfolder = test_folder / "subfolder"
+        subfolder.mkdir()
+
+        # Create test files at different levels
+        file1 = docx_factory(content="Test 1", filename="file1.docx")
+        file2 = docx_factory(content="Test 2", filename="file2.docx")
+
+        # Move files to test folder structure
+        import shutil
+        dest1 = test_folder / "file1.docx"
+        dest2 = subfolder / "file2.docx"
+        shutil.copy(str(file1), str(dest1))
+        shutil.copy(str(file2), str(dest2))
+
+        # Mock folder dialog to return test folder
+        monkeypatch.setattr(
+            QFileDialog, 'getExistingDirectory',
+            lambda *args, **kwargs: str(test_folder)
+        )
+
+        # Trigger folder dialog
+        window._on_add_folder()
+
+        # Verify files added (recursive scan should find both)
+        assert len(window.selected_files) == 2
+        assert window.file_list.count() == 2
+        assert window.start_button.isEnabled() is True
+
+    def test_clear_files_button(self, qtbot, test_config, test_db, docx_factory):
+        """Test clear files button empties selection and disables start button."""
+        window = MainWindow(test_config, test_db)
+        qtbot.addWidget(window)
+
+        # Add files first
+        test_files = [docx_factory(content="Test", filename="test.docx")]
+        window.selected_files = test_files
+        window._update_ui_state()
+
+        assert len(window.selected_files) == 1
+        assert window.start_button.isEnabled() is True
+
+        # Clear files
+        window._on_clear_files()
+
+        # Verify cleared
+        assert len(window.selected_files) == 0
+        assert window.file_list.count() == 0
+        assert window.start_button.isEnabled() is False
+
+    def test_duplicate_files_not_added(self, qtbot, test_config, test_db, docx_factory, monkeypatch):
+        """Test that adding same file twice only results in one entry."""
+        window = MainWindow(test_config, test_db)
+        qtbot.addWidget(window)
+
+        # Create test file
+        test_file = docx_factory(content="Test", filename="test.docx")
+
+        # Mock file dialog to return same file twice
+        monkeypatch.setattr(
+            QFileDialog, 'getOpenFileNames',
+            lambda *args, **kwargs: ([str(test_file), str(test_file)], '')
+        )
+
+        # Add files (same file twice in dialog)
+        window._on_add_files()
+
+        # Should only have one entry (duplicate prevented)
+        assert len(window.selected_files) == 1
+        assert window.file_list.count() == 1
+
+    def test_file_count_label_updates(self, qtbot, test_config, test_db, docx_factory):
+        """Test that file count label shows correct count and size."""
+        window = MainWindow(test_config, test_db)
+        qtbot.addWidget(window)
+
+        # Initially empty
+        assert '0 files' in window.file_count_label.text()
+
+        # Add files
+        test_files = [
+            docx_factory(content="Test 1", filename="test1.docx"),
+            docx_factory(content="Test 2", filename="test2.docx")
+        ]
+        window.selected_files = test_files
+        window._update_file_count()
+
+        # Verify label updated
+        label_text = window.file_count_label.text()
+        assert '2 files' in label_text
+        assert 'MB' in label_text  # Shows size in MB
+
+
+# ============================================================================
+# TestMainWindowOperationSwitching - GUI-01 Operation Panel Tests
+# ============================================================================
+
+@pytest.mark.gui
+class TestMainWindowOperationSwitching:
+    """Tests for operation button switching and config panel display."""
+
+    def test_validate_operation_shows_config(self, qtbot, test_config, test_db):
+        """Test clicking validate button shows validate config panel."""
+        window = MainWindow(test_config, test_db)
+        qtbot.addWidget(window)
+
+        # Click validate operation button
+        validate_button = window.operation_buttons['validate']
+        QTest.mouseClick(validate_button, Qt.LeftButton)
+
+        # Verify validate config panel shown
+        assert window.current_operation == 'validate'
+        assert hasattr(window, 'validate_heading_check')
+        assert hasattr(window, 'validate_empty_check')
+
+    def test_table_format_operation_shows_config(self, qtbot, test_config, test_db):
+        """Test clicking table_format button shows table format config panel."""
+        window = MainWindow(test_config, test_db)
+        qtbot.addWidget(window)
+
+        # Click table_format operation button
+        table_button = window.operation_buttons['table_format']
+        QTest.mouseClick(table_button, Qt.LeftButton)
+
+        # Verify table format config panel shown
+        assert window.current_operation == 'table_format'
+        assert hasattr(window, 'table_borders_check')
+        assert hasattr(window, 'table_alignment_combo')
+
+    def test_style_enforce_operation_shows_config(self, qtbot, test_config, test_db):
+        """Test clicking style_enforce button shows style config panel."""
+        window = MainWindow(test_config, test_db)
+        qtbot.addWidget(window)
+
+        # Click style_enforce operation button
+        style_button = window.operation_buttons['style_enforce']
+        QTest.mouseClick(style_button, Qt.LeftButton)
+
+        # Verify style config panel shown
+        assert window.current_operation == 'style_enforce'
+        assert hasattr(window, 'style_font_check')
+        assert hasattr(window, 'style_font_name_input')
+
+    def test_operation_buttons_mutually_exclusive(self, qtbot, test_config, test_db):
+        """Test that only one operation button can be checked at a time."""
+        window = MainWindow(test_config, test_db)
+        qtbot.addWidget(window)
+
+        # Initially search_replace is checked
+        assert window.operation_buttons['search_replace'].isChecked() is True
+        assert window.operation_buttons['metadata'].isChecked() is False
+
+        # Click metadata button
+        QTest.mouseClick(window.operation_buttons['metadata'], Qt.LeftButton)
+
+        # Verify only metadata is checked now
+        assert window.operation_buttons['search_replace'].isChecked() is False
+        assert window.operation_buttons['metadata'].isChecked() is True
+        assert window.operation_buttons['validate'].isChecked() is False
+
+        # Click validate button
+        QTest.mouseClick(window.operation_buttons['validate'], Qt.LeftButton)
+
+        # Verify only validate is checked now
+        assert window.operation_buttons['search_replace'].isChecked() is False
+        assert window.operation_buttons['metadata'].isChecked() is False
+        assert window.operation_buttons['validate'].isChecked() is True
