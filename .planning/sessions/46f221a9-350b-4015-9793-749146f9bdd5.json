@@ -1,0 +1,19 @@
+{
+  "id": "46f221a9-350b-4015-9793-749146f9bdd5",
+  "account_id": "default",
+  "project_path": "C:\\\\Temp\\\\Dev\\\\docx-bulk-editor",
+  "state": "completed",
+  "workflow_state": "idle",
+  "sdk_session_id": "6b960ca7-1879-49ce-9639-ea9ac0103bc3",
+  "messages": [],
+  "current_phase": null,
+  "current_plan": null,
+  "last_gsd_command": "/gsd:progress",
+  "created_at": "2026-02-03T09:35:20.052390+00:00",
+  "started_at": "2026-02-03T09:35:20.099431+00:00",
+  "last_activity": "2026-02-03T09:54:41.373116+00:00",
+  "stopped_at": "2026-02-03T09:36:47.293089+00:00",
+  "total_duration_seconds": 0.0,
+  "restart_count": 0,
+  "state_transitions": []
+}

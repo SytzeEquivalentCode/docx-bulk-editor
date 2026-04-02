@@ -46,6 +46,10 @@ a = Analysis(
         # Application processors (dynamic imports)
         'src.processors.search_replace',
         'src.processors.metadata',
+        'src.processors.validator',
+        'src.processors.table_formatter',
+        'src.processors.style_enforcer',
+        'src.processors.shading_remover',
 
         # Other application modules
         'src.core.config',
@@ -55,6 +59,8 @@ a = Analysis(
         'src.workers.job_worker',
         'src.ui.main_window',
         'src.ui.progress_dialog',
+        'src.ui.settings_dialog',
+        'src.ui.history_window',
     ],
     hookspath=[],
     hooksconfig={},

@@ -326,6 +326,7 @@ class JobWorker(QThread):
             'validate': 'src.processors.validator',
             'table_format': 'src.processors.table_formatter',
             'style_enforce': 'src.processors.style_enforcer',
+            'shading_remove': 'src.processors.shading_remover',
         }
 
         module_name = processor_map.get(self.operation)

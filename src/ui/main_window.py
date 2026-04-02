@@ -238,7 +238,8 @@ class MainWindow(QMainWindow):
             ('metadata', 'Metadata'),
             ('table_format', 'Table Format'),
             ('style_enforce', 'Style'),
-            ('validate', 'Validate')
+            ('validate', 'Validate'),
+            ('shading_remove', 'Shading')
         ]
 
         # Create buttons
@@ -289,6 +290,8 @@ class MainWindow(QMainWindow):
             self._show_table_format_config()
         elif operation == 'style_enforce':
             self._show_style_enforce_config()
+        elif operation == 'shading_remove':
+            self._show_shading_remove_config()
         else:
             self._show_placeholder_config(operation)
 
@@ -358,7 +361,10 @@ class MainWindow(QMainWindow):
             'table_alignment_combo', 'table_padding_spin',
             # Style enforce config
             'style_font_check', 'style_heading_check', 'style_spacing_check',
-            'style_font_name_input', 'style_font_size_spin'
+            'style_font_name_input', 'style_font_size_spin',
+            # Shading remove config
+            'shading_body_check', 'shading_tables_check',
+            'shading_textboxes_check', 'shading_headers_footers_check'
         ]
         for attr in config_attrs:
             if hasattr(self, attr):
@@ -642,6 +648,36 @@ class MainWindow(QMainWindow):
         self.style_spacing_check = QCheckBox('Normalize paragraph spacing')
         self.style_spacing_check.setChecked(False)
         options_layout.addWidget(self.style_spacing_check)
+
+        self.config_layout.addLayout(options_layout)
+        self.config_layout.addStretch()
+
+    def _show_shading_remove_config(self):
+        """Show configuration widgets for shading removal operation."""
+        self._clear_config_panel()
+
+        # Instructions
+        instruction_label = QLabel('Make all shading white (FFFFFF) in selected document areas:')
+        self.config_layout.addWidget(instruction_label)
+
+        # Scope options
+        options_layout = QVBoxLayout()
+
+        self.shading_body_check = QCheckBox('Body text (paragraphs and runs)')
+        self.shading_body_check.setChecked(True)
+        options_layout.addWidget(self.shading_body_check)
+
+        self.shading_tables_check = QCheckBox('Tables (cell and table-level shading)')
+        self.shading_tables_check.setChecked(True)
+        options_layout.addWidget(self.shading_tables_check)
+
+        self.shading_textboxes_check = QCheckBox('Text boxes (DrawingML and VML)')
+        self.shading_textboxes_check.setChecked(True)
+        options_layout.addWidget(self.shading_textboxes_check)
+
+        self.shading_headers_footers_check = QCheckBox('Headers and footers')
+        self.shading_headers_footers_check.setChecked(True)
+        options_layout.addWidget(self.shading_headers_footers_check)
 
         self.config_layout.addLayout(options_layout)
         self.config_layout.addStretch()
@@ -970,6 +1006,14 @@ class MainWindow(QMainWindow):
                     'enforce_headings': self.style_heading_check.isChecked(),
                     'normalize_spacing': self.style_spacing_check.isChecked()
                 }
+            }
+
+        elif self.current_operation == 'shading_remove':
+            return {
+                'process_body': self.shading_body_check.isChecked(),
+                'process_tables': self.shading_tables_check.isChecked(),
+                'process_textboxes': self.shading_textboxes_check.isChecked(),
+                'process_headers_footers': self.shading_headers_footers_check.isChecked(),
             }
 
         return {}
